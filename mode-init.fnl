@@ -10,7 +10,7 @@
         ; se preme invio, comincia gioco
         (print key)
         (if (= key "return")
-            (set-mode "mode-game")
+            (set-mode "mode-game" 1)
         )
     )
     :activate nil

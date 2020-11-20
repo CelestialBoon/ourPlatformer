@@ -1,0 +1,58 @@
+walljump
+doppio salto
+nuovo tileset
+schermata iniziale
+
+
+--------------------------------------
+acqua e/o altri terreni non solidi
+piattaforme con molle
+nemici
+armi
+personaggio non quadrato
+    cambiare forma
+    cambiare texture
+    animare sprite
+sfondo livello
+    animazioni weather
+altri oggetti
+    oggetti punto (come monete)
+punteggio
+spesa di punti
+NPC
+menu opzioni
+    volume
+    controlli
+    risoluzione
+musica
+SFX
+evento conclusione livello
+evento fine gioco
+nuovi livelli
+scale
+segreti nei livelli
+    tile illusorie (sembrano solide ma non lo sono)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------
+inclini
+
