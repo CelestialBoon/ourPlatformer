@@ -7,11 +7,20 @@
 (var listaLivelli [:level1 :level2])
 (var livello nil)
 
+(var tasti-premuti [])
+(var pausa? false)
+
 (fn sleep [s]
   (let [ntime (+ (os.clock) (/ s 10))]
     (while true
       (when (> (os.clock) ntime)
         (lua "break")))))
+
+(fn filter [item other] 
+  (if (and (= item.name "Player") (= other.name "Objective")) 
+    "cross"
+    "slide")
+)
 
 (var camera (require "camera"))
 
@@ -22,7 +31,10 @@
 
 (local accel 0.03)
 (local attrito 0.026)
-(local salto 2.5)
+(local v-salto-terra 2.5)
+(local v-salto-muro-v 2)
+(local v-salto-muro-h 3)
+(local v-salto-doppio 1.5)
 (local gravita 0.015)
 ; (var floor {:name "floor"})
 ; (var lWall {:name "lWall"})
@@ -30,12 +42,11 @@
 ; (var ceil {:name "ceil"})
 ; (var rettangolo {:name "rettangolo"})
 ; (var obiettivoDaDisegnare true)
-(fn filter [item other] 
-  (if (and (= item.name "Player") (= other.name "Objective")) 
-    "cross"
-    "slide")
-)
-(var saltabile? true)
+
+(var salto-a-terra? false)
+(var salto-a-muro? false)
+(var salto-doppio? true)
+
 
 (local (wWidth wHeight) (love.graphics.getDimensions))
 
@@ -114,6 +125,21 @@
       )
     )
 
+    (var bgLayer (map:addCustomLayer "background" 1))
+
+    (var mainbgSprite (love.graphics.newImage (.. "assets/backgrounds/" map.properties.season "BG.png")))
+
+    (set bgLayer.draw (fn [self] 
+      (love.graphics.setBackgroundColor 
+        (match map.properties.season
+          :spring (values 0.282 0.4 0.773 1)
+          :summer (values 0 0 0 1)
+          :fall   (values 0 0 0 1)
+          :winter (values 0 0 0 1)
+        ))
+      (love.graphics.draw mainbgSprite 0 100)
+    ))
+
     ;(set obiet {:name "Objective"})
 
     ; fine dell'inizializzazione spawns
@@ -132,78 +158,107 @@
   ) 
         
   :update (fn update [dt set-mode]
+
+    (if (lume.find tasti-premuti "escape") (set pausa? (not pausa?)))
     ; (sleep 0.1)
-
-    (var (xPlayer yPlayer wPlayer hPlayer) (world:getRect player))
-    ; logica velocita giocatore
-    (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd accel)))
-    (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd accel)))
-    (if (and (love.keyboard.isDown "up") saltabile?) 
-      (set player.ySpd (- player.ySpd salto))
-    )
-    ;(if (love.keyboard.isDown "down") (set player.ySpd (+ player.ySpd 0.05)))
-
-    ; logica attrito 
-    (set player.xSpd (- player.xSpd (* attrito player.xSpd)))
-    ; (if (> player.xSpd 0)
-    ;   (if (< player.xSpd attrito)
-    ;     (set player.xSpd 0)
-    ;     (set player.xSpd (- player.xSpd attrito))
-    ;   )
-    ; (< player.xSpd 0)
-    ;   (if (> player.xSpd attrito)
-    ;     (set player.xSpd 0)
-    ;     (set player.xSpd (+ player.xSpd attrito))
-    ;   )
-    ; )
-    ; gravita
-    (set player.ySpd (+ player.ySpd gravita))
-
-    (var (actualX actualY collisions collisionsNumber) (world:move player (+ xPlayer player.xSpd) (+ yPlayer player.ySpd) filter))
-    (set player.x actualX)
-    (set player.y actualY)
-    ;(print xPlayer yPlayer)
-    ; (pp player)
-
-    ;(pp collisions)
-
-    ; check saltabilita per prossimo update
-    (set saltabile? false)
-    (when (> collisionsNumber 0)
-      (var cols (if (= collisionsNumber 1)
-        [collisions]
-        collisions
-      ))
-
-      ;(pp collisions)
-      (each [index value (ipairs collisions)]
-        (when (= value.type "slide")
-          (if 
-            (and (not (= value.normal.x 0)) (= value.normal.y 0))
-            (set value.item.xSpd 0)
-            (and (not (= value.normal.y 0)) (= value.normal.x 0))
-            (set value.item.ySpd 0)
+    (when (not pausa?)
+      (var (xPlayer yPlayer wPlayer hPlayer) (world:getRect player))
+      ; logica velocita giocatore
+      (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd accel)))
+      (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd accel)))
+      ; gestione salti
+      (if (lume.find tasti-premuti "up") 
+        (if salto-a-terra?
+          (set player.ySpd (- player.ySpd v-salto-terra))
+          salto-a-muro?
+          (do
+            (set player.ySpd (- 0 v-salto-muro-v))
+            (set player.xSpd (if (= "left" salto-a-muro?) (- 0 v-salto-muro-h) v-salto-muro-h))
+            ;(print "salto a muro verso " salto-a-muro?)
           )
-          (when (and (= value.normal.x 0) (< value.normal.y 0))
-            (set saltabile? true)
+          salto-doppio?
+          (do 
+            (set player.ySpd (- 0 v-salto-doppio))
+            (set salto-doppio? false)
           )
         )
-        (when (and (= value.item.name "Player") (= value.other.name "Objective"))
-          ; avanza livello
-          (set livello (+ livello 1))
-          (if (= nil (. listaLivelli livello))
-            (set-mode "mode-end")
+      )
+      ;(if (love.keyboard.isDown "down") (set player.ySpd (+ player.ySpd 0.05)))
+
+      ; logica attrito 
+      (set player.xSpd (- player.xSpd (* attrito player.xSpd)))
+      ; (if (> player.xSpd 0)
+      ;   (if (< player.xSpd attrito)
+      ;     (set player.xSpd 0)
+      ;     (set player.xSpd (- player.xSpd attrito))
+      ;   )
+      ; (< player.xSpd 0)
+      ;   (if (> player.xSpd attrito)
+      ;     (set player.xSpd 0)
+      ;     (set player.xSpd (+ player.xSpd attrito))
+      ;   )
+      ; )
+      ; gravita
+      (set player.ySpd (+ player.ySpd gravita))
+
+      (var (actualX actualY collisions collisionsNumber) (world:move player (+ xPlayer player.xSpd) (+ yPlayer player.ySpd) filter))
+      (set player.x actualX)
+      (set player.y actualY)
+      ;(print xPlayer yPlayer)
+      ; (pp player)
+
+      ;(pp collisions)
+
+      ; check saltabilita per prossimo update
+      (set salto-a-terra? false)
+      (set salto-a-muro? false)
+      (when (> collisionsNumber 0)
+        (var cols (if (= collisionsNumber 1)
+          [collisions]
+          collisions
+        ))
+
+        ;(pp collisions)
+        (each [index value (ipairs collisions)]
+          ; collisione con muri (per ora tutti slide)
+          (when (= value.type "slide")
+            (if 
+              ; muro verticale
+              (and (not= value.normal.x 0) (= value.normal.y 0))
+              (do 
+                (set value.item.xSpd 0)
+                (set salto-a-muro? (if (< 0 value.normal.x) "right" "left"))
+              )
+              ; muro orizzontale
+              (and (not= value.normal.y 0) (= value.normal.x 0))
+              (set value.item.ySpd 0)
+            )
+            ; quando tocchiamo terra
+            (when (and (= value.normal.x 0) (< value.normal.y 0))
+              (set salto-a-terra? true)
+              (set salto-doppio? true)
+            )
+          )
+          ; quando colpiamo l'obiettivo
+          (when (and (= value.item.name "Player") (= value.other.name "Objective"))
+            ; avanza livello
+            (set livello (+ livello 1))
+            (if (= nil (. listaLivelli livello))
+              (set-mode "mode-end")
+              (set-mode "mode-game" livello)
+            )
+          )
+          ; quando tocchiamo il fondo
+          (when (and (= value.item.name "Player") (= value.other.name "border-d"))
+            ;resetta livello
             (set-mode "mode-game" livello)
           )
         )
-        (when (and (= value.item.name "Player") (= value.other.name "border-d"))
-          ;resetta livello
-          (set-mode "mode-game" livello)
-        )
+        ;(print "collisionsNumber:" collisionsNumber)
+        ;(print "collisione")
       )
-      ;(print "collisionsNumber:" collisionsNumber)
-      ;(print "collisione")
     )
+    (set tasti-premuti [])
   )
           ;  (if (< counter 65535)
           ;      (set counter (+ counter 1))
@@ -222,6 +277,9 @@
     ; (print "player" player.x player.y)
     ; (print "camera" camera.x camera.y)
     (map:draw (- 0 camera.x) (- 0 camera.y))
+    (when pausa?
+      (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))
+    )
     ; (love.graphics.pop)
     ; (camera:unset)
       ; (local (xPlayer yPlayer wPlayer hPlayer) (world:getRect player))
@@ -238,8 +296,9 @@
     )
 
   :keypressed (fn keypressed [key set-mode]
-          ;(print (love.keyboard.isDown "right"))
-          ;(love.graphics.print (: (tostring (love.keyboard.isDown "right")) 32 16))
-          
+    ;(print (love.keyboard.isDown "right"))
+    ;(love.graphics.print (: (tostring (love.keyboard.isDown "right")) 32 16))
+    ;(if (= key "up") (set premuto-su? true))
+    (table.insert tasti-premuti key)
   )
 }

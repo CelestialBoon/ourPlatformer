@@ -1,10 +1,13 @@
+(var titleScreen (love.graphics.newImage "assets/titleScreen.png"))
+
 {
     :update (fn update [dt set-mode]
         ; ????
     )
     :draw (fn draw []
         ; disegna inizia gioco (magari slampeggiante)
-        (love.graphics.print "Inizia gioco" 100 100)
+        (love.graphics.draw titleScreen 0 0)
+        (love.graphics.print "Inizia gioco" 310 200)
     )
     :keypressed (fn keypressed [key set-mode]
         ; se preme invio, comincia gioco

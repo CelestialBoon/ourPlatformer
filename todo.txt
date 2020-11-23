@@ -1,25 +1,25 @@
-walljump
-doppio salto
-nuovo tileset
-schermata iniziale
+PRIORITY
 
-
---------------------------------------
-acqua e/o altri terreni non solidi
 piattaforme con molle
-nemici
-armi
+sfondo livello
+    animazioni weather
+
 personaggio non quadrato
     cambiare forma
     cambiare texture
     animare sprite
-sfondo livello
-    animazioni weather
+--------------------------------------
+coroutines
+    armi
+    walljump migliorato
+
+nemici
 altri oggetti
     oggetti punto (come monete)
 punteggio
 spesa di punti
 NPC
+    dialoghi
 menu opzioni
     volume
     controlli
@@ -29,30 +29,22 @@ SFX
 evento conclusione livello
 evento fine gioco
 nuovi livelli
-scale
+different update modalities (passing different objects to :update)
+    scale
+    abilita speciali
+    acqua e/o altri terreni non solidi
 segreti nei livelli
     tile illusorie (sembrano solide ma non lo sono)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 -------------------------------------------
 inclini
 
+
+FATTO
+
+doppio salto
+walljump
+routine generica gestione tasti
+pausa
+nuovo tileset
+schermata iniziale
