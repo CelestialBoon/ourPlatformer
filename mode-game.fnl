@@ -1,14 +1,9 @@
-; (var levelInit (require "LevelBase"))
-; (levelInit "level1")
-
-; (var counter 0)
-; (var time 0)
-
 (var listaLivelli [:level1 :level2])
 (var livello nil)
 
 (var tasti-premuti [])
 (var pausa? false)
+(var det 0)
 
 (fn sleep [s]
   (let [ntime (+ (os.clock) (/ s 10))]
@@ -22,6 +17,15 @@
     "slide")
 )
 
+(fn nextFrame [tabl dt max]
+  (set tabl.time (+ tabl.time dt))
+  (when (> tabl.time tabl.tick)
+    (set tabl.frame (if (>= tabl.frame max) 0 (+ tabl.frame 1)))
+    (set tabl.time (- tabl.time tabl.tick))
+  )
+  tabl.frame
+)
+
 (var camera (require "camera"))
 
 (var map nil)
@@ -29,26 +33,27 @@
 (var player nil)
 (var obiet nil)
 
-(local accel 0.03)
-(local attrito 0.026)
-(local v-salto-terra 2.5)
-(local v-salto-muro-v 2)
-(local v-salto-muro-h 3)
-(local v-salto-doppio 1.5)
-(local gravita 0.015)
-; (var floor {:name "floor"})
-; (var lWall {:name "lWall"})
-; (var rWall {:name "rWall"})
-; (var ceil {:name "ceil"})
-; (var rettangolo {:name "rettangolo"})
-; (var obiettivoDaDisegnare true)
+(local scale 3)
 
-(var salto-a-terra? false)
+(local playerTick .5)
+(local playerScale 1)
+
+(local accel 0.005)
+(local attrito 0.013)
+(local v-salto-terra 0.7)
+(local v-salto-muro-v .6)
+(local v-salto-muro-h .7)
+(local v-salto-doppio 0.5)
+(local gravita 0.004)
+(local v-idle 0.001)
+
+(var a-terra? false)
 (var salto-a-muro? false)
 (var salto-doppio? true)
 
-
-(local (wWidth wHeight) (love.graphics.getDimensions))
+(var (wWidth wHeight) (love.graphics.getDimensions))
+(set wWidth (/ wWidth scale))
+(set wHeight (/ wHeight scale))
 
 (fn camera.position [self player]
   (let [  map-width (* map.width map.tilewidth) 
@@ -107,8 +112,12 @@
 
     (set player.xSpd 0)
     (set player.ySpd 0)
+
+    (set player.time 0)
+    (set player.tick playerTick)
+    (set player.frame 1)
     
-    (var playerSprite (love.graphics.newImage "assets/player.png"))
+    (var playerSprite (love.graphics.newImage "assets/sprites/protag.png"))
     (var obietSprite (love.graphics.newImage "assets/objective.png"))
 
     (set obiet.sprite obietSprite)
@@ -118,7 +127,21 @@
     (set spriteLayer.obiet obiet)
 
     (set spriteLayer.draw (fn [self]
-        (love.graphics.draw self.player.sprite self.player.x self.player.y 0 1 1 0 0)
+        ; determina il frame
+        (var (r c) (match self.player.state
+          :idle  (values 0 (nextFrame self.player det 3))
+          :jumpu (values 1 0)
+          :jumpd (values 1 1)
+          :run   (values 2 (nextFrame self.player det 3))
+        ))
+
+        ; draw player
+        (love.graphics.draw self.player.sprite (love.graphics.newQuad
+          (* c 16) 
+          (* r 16) 
+          16 16 
+          (self.player.sprite:getDimensions))
+          self.player.x self.player.y 0 playerScale)
         (love.graphics.setPointSize 5)
         (love.graphics.points (math.floor self.player.x) (math.floor self.player.y))
         (love.graphics.draw self.obiet.sprite self.obiet.x self.obiet.y 0 1 1 0 0)
@@ -140,25 +163,13 @@
       (love.graphics.draw mainbgSprite 0 100)
     ))
 
-    ;(set obiet {:name "Objective"})
-
     ; fine dell'inizializzazione spawns
     ; (map:removeLayer "Spawn")
     (set map.layers.Spawn.visible false)
-
-    ;(pp world)
-    ; (world.add world obiet 100 10 20 20)
-
-    ; (world.add world floor 0 wHeight wWidth 1)
-    ; (world.add world lWall -1 0 1 wHeight)
-    ; (world.add world rWall wWidth 0 1 wHeight)
-    ; (world.add world ceil 0 -1 wWidth 1)
-
-    ; (world.add world rettangolo 250 220 50 30)
   ) 
         
   :update (fn update [dt set-mode]
-
+    (set det dt)
     (if (lume.find tasti-premuti "escape") (set pausa? (not pausa?)))
     ; (sleep 0.1)
     (when (not pausa?)
@@ -168,7 +179,7 @@
       (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd accel)))
       ; gestione salti
       (if (lume.find tasti-premuti "up") 
-        (if salto-a-terra?
+        (if a-terra?
           (set player.ySpd (- player.ySpd v-salto-terra))
           salto-a-muro?
           (do
@@ -183,34 +194,19 @@
           )
         )
       )
-      ;(if (love.keyboard.isDown "down") (set player.ySpd (+ player.ySpd 0.05)))
 
       ; logica attrito 
       (set player.xSpd (- player.xSpd (* attrito player.xSpd)))
-      ; (if (> player.xSpd 0)
-      ;   (if (< player.xSpd attrito)
-      ;     (set player.xSpd 0)
-      ;     (set player.xSpd (- player.xSpd attrito))
-      ;   )
-      ; (< player.xSpd 0)
-      ;   (if (> player.xSpd attrito)
-      ;     (set player.xSpd 0)
-      ;     (set player.xSpd (+ player.xSpd attrito))
-      ;   )
-      ; )
+
       ; gravita
       (set player.ySpd (+ player.ySpd gravita))
 
       (var (actualX actualY collisions collisionsNumber) (world:move player (+ xPlayer player.xSpd) (+ yPlayer player.ySpd) filter))
       (set player.x actualX)
       (set player.y actualY)
-      ;(print xPlayer yPlayer)
-      ; (pp player)
-
-      ;(pp collisions)
 
       ; check saltabilita per prossimo update
-      (set salto-a-terra? false)
+      (set a-terra? false)
       (set salto-a-muro? false)
       (when (> collisionsNumber 0)
         (var cols (if (= collisionsNumber 1)
@@ -235,10 +231,11 @@
             )
             ; quando tocchiamo terra
             (when (and (= value.normal.x 0) (< value.normal.y 0))
-              (set salto-a-terra? true)
+              (set a-terra? true)
               (set salto-doppio? true)
             )
           )
+
           ; quando colpiamo l'obiettivo
           (when (and (= value.item.name "Player") (= value.other.name "Objective"))
             ; avanza livello
@@ -254,19 +251,24 @@
             (set-mode "mode-game" livello)
           )
         )
-        ;(print "collisionsNumber:" collisionsNumber)
-        ;(print "collisione")
+        
+      )
+      (set player.state (if a-terra?
+        (if (< player.xSpd v-idle)
+          ; stato idle : fermo e per terra
+          "idle"
+          ; stato corsa: per terra e velocita nonnulla
+          "run"
+        )
+        ; stato jumpu e jumpd: in aria e salendo/scendendo
+        (< player.ySpd 0)
+        "jumpu"
+        "jumpd"
+        )
       )
     )
     (set tasti-premuti [])
   )
-          ;  (if (< counter 65535)
-          ;      (set counter (+ counter 1))
-          ;      (set counter 0))
-          ;  (set time (+ time dt))
-          ;  (when (> time 3)
-          ;    (set-mode "mode-intro")))
-    ; (love.graphics.print (: "This window should close in %0.2f seconds" :format (- 3 time)) 32 16))
 
   :draw (fn draw [message]
     (camera:position player)
@@ -276,29 +278,15 @@
     ; (love.graphics.scale 3 3)
     ; (print "player" player.x player.y)
     ; (print "camera" camera.x camera.y)
-    (map:draw (- 0 camera.x) (- 0 camera.y))
+    (map:draw (- 0 camera.x) (- 0 camera.y) scale)
     (when pausa?
       (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))
     )
     ; (love.graphics.pop)
     ; (camera:unset)
-      ; (local (xPlayer yPlayer wPlayer hPlayer) (world:getRect player))
-      ; (love.graphics.setColor .87 .84 .27)
-      ; (love.graphics.rectangle "fill" xPlayer yPlayer wPlayer hPlayer)
-      ; (when obiettivoDaDisegnare 
-      ;   (local (xObiet yObiet wObiet hObiet) (world:getRect obiet))
-      ;   (love.graphics.setColor .27 .24 .77)
-      ;   (love.graphics.rectangle "fill" xObiet yObiet wObiet hObiet)
-      ; )
-      ; (local (xRett yRett wRett hRett) (world:getRect rettangolo))
-      ; (love.graphics.setColor 0 0 1)
-      ; (love.graphics.rectangle "fill" xRett yRett wRett hRett)
     )
 
   :keypressed (fn keypressed [key set-mode]
-    ;(print (love.keyboard.isDown "right"))
-    ;(love.graphics.print (: (tostring (love.keyboard.isDown "right")) 32 16))
-    ;(if (= key "up") (set premuto-su? true))
     (table.insert tasti-premuti key)
   )
 }

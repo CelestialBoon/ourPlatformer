@@ -1,19 +1,26 @@
 PRIORITY
 
 piattaforme con molle
+
 sfondo livello
     animazioni weather
+    parallasse
 
 personaggio non quadrato
     cambiare forma
     cambiare texture
     animare sprite
+    cambiare verso
+
 --------------------------------------
-coroutines
-    armi
-    walljump migliorato
+
+armi
+walljump migliorato (migliorare walljump detection)
+
 
 nemici
+    logica comportamento nemici
+    sprites nemici
 altri oggetti
     oggetti punto (come monete)
 punteggio
@@ -29,17 +36,17 @@ SFX
 evento conclusione livello
 evento fine gioco
 nuovi livelli
-different update modalities (passing different objects to :update)
+different update mechanics (passing different objects to :update ?)
     scale
     abilita speciali
     acqua e/o altri terreni non solidi
 segreti nei livelli
     tile illusorie (sembrano solide ma non lo sono)
 
--------------------------------------------
+
+coroutines
 inclini
-
-
+-------------------------------------------
 FATTO
 
 doppio salto
@@ -48,3 +55,5 @@ routine generica gestione tasti
 pausa
 nuovo tileset
 schermata iniziale
+ridimensionare la fisica
+ridimensionare la telecamera
