@@ -12,7 +12,8 @@
         (lua "break")))))
 
 (fn filter [item other] 
-  (if (and (= item.name "Player") (= other.name "Objective")) 
+  (if 
+    (and (= item.name :Player) (or (= other.name :Objective) (= other.type :bumper))) 
     "cross"
     "slide")
 )
@@ -35,8 +36,10 @@
 
 (local scale 3)
 
-(local playerTick .5)
+(local playerTick .15)
 (local playerScale 1)
+(local playerWidth 10)
+(local playerHeight 16)
 
 (local accel 0.005)
 (local attrito 0.013)
@@ -44,6 +47,7 @@
 (local v-salto-muro-v .6)
 (local v-salto-muro-h .7)
 (local v-salto-doppio 0.5)
+(local v-bumper 1)
 (local gravita 0.004)
 (local v-idle 0.001)
 
@@ -81,6 +85,19 @@
 
     (map:bump_init world)
 
+    ; (each [_ coll (ipairs map.bump_collidables)]
+    ;   (each [_ coll2 (pairs coll.layer.data)]
+    ;     (each [_ coll3 (pairs coll2)]
+    ;       ; (pp coll2)
+    ;       (when (= coll3.type :bumper)
+    ;         (print :bumper!)
+    ;         (pp coll3)
+    ;       )
+    ;     )
+    ;   )
+    ;   ; (pp coll)
+    ; )
+
     (var border-l {:name "border-l"})
     (var border-r {:name "border-r"})
     (var border-u {:name "border-u"})
@@ -99,7 +116,36 @@
       )
     )
 
-    (set player (world:add player player.x player.y player.width player.height))
+    (each [_ tileset (ipairs map.tilesets)]
+      (each [_ tile (ipairs tileset.tiles)]
+        (when (= tile.type :bumper)
+          (local gid (+ tileset.firstgid tile.id))
+          (when (. map.tileInstances gid)
+            (each [_ instance (ipairs (. map.tileInstances gid))]
+              (local t {
+                :height 2
+                :width map.tileheight
+                :x (+ instance.x map.offsetx)
+                :y (+ instance.y map.offsety 14)
+                :layer instance.layer
+                :name "bumper"
+                :properties tile.properties
+                :type tile.type
+              })
+              (: world "add" t t.x t.y t.width t.height)
+              (table.insert map.bump_collidables t)
+            )
+          )
+        )
+      )
+    )
+
+    ; (each [index value (ipairs map.tilesets.tiles)]
+    ;     (print :bumper!)
+    ;   )
+    ; )
+
+    (set player (world:add player player.x player.y playerWidth playerHeight))
     (set obiet (world:add obiet obiet.x obiet.y obiet.width obiet.height))
 
     (var map-width (* map.width map.tilewidth))
@@ -112,6 +158,7 @@
 
     (set player.xSpd 0)
     (set player.ySpd 0)
+    (set player.verso :r)
 
     (set player.time 0)
     (set player.tick playerTick)
@@ -129,7 +176,7 @@
     (set spriteLayer.draw (fn [self]
         ; determina il frame
         (var (r c) (match self.player.state
-          :idle  (values 0 (nextFrame self.player det 3))
+          :idle  (values 0 0)
           :jumpu (values 1 0)
           :jumpd (values 1 1)
           :run   (values 2 (nextFrame self.player det 3))
@@ -141,7 +188,13 @@
           (* r 16) 
           16 16 
           (self.player.sprite:getDimensions))
-          self.player.x self.player.y 0 playerScale)
+          ; posizione e rotazione
+          self.player.x self.player.y 0
+          ;scala 
+          (* (if (= player.verso :l) -1 1) playerScale) playerScale
+          ;offset
+          (if (= player.verso :r) (values 3 0) (values 13 0))
+        )
         (love.graphics.setPointSize 5)
         (love.graphics.points (math.floor self.player.x) (math.floor self.player.y))
         (love.graphics.draw self.obiet.sprite self.obiet.x self.obiet.y 0 1 1 0 0)
@@ -160,7 +213,23 @@
           :fall   (values 0 0 0 1)
           :winter (values 0 0 0 1)
         ))
-      (love.graphics.draw mainbgSprite 0 100)
+      (var bgx (* camera.x 0.8))
+      (var bgy (- (* camera.y 0.8) 200))
+      (var bgscale 3)
+      ; (when (> (+ camera.x (love.graphics.getWidth)) (+ bgx (* (mainbgSprite.getWidth) bgscale))
+      ;   (love.graphics.draw mainbgSprite 
+      ;   ; x y rot
+      ;   (+ bgx (* (mainbgSprite.getWidth) bgscale)) bgy  0
+      ;   ; scala
+      ;   bgscale
+      ; )
+      ; )
+      (love.graphics.draw mainbgSprite 
+        ; x y rot
+        bgx bgy 0
+        ; scala
+        bgscale
+      )
     ))
 
     ; fine dell'inizializzazione spawns
@@ -215,29 +284,34 @@
         ))
 
         ;(pp collisions)
-        (each [index value (ipairs collisions)]
+        (each [_ col (ipairs collisions)]
           ; collisione con muri (per ora tutti slide)
-          (when (= value.type "slide")
+          (when (= col.other.type :bumper)
+            (set col.item.ySpd (- 0 v-bumper))
+            (set salto-doppio? true)
+          )
+          ; (pp col.other)
+          (when (= col.type "slide")
             (if 
               ; muro verticale
-              (and (not= value.normal.x 0) (= value.normal.y 0))
+              (and (not= col.normal.x 0) (= col.normal.y 0))
               (do 
-                (set value.item.xSpd 0)
-                (set salto-a-muro? (if (< 0 value.normal.x) "right" "left"))
+                (set col.item.xSpd 0)
+                (set salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
               )
               ; muro orizzontale
-              (and (not= value.normal.y 0) (= value.normal.x 0))
-              (set value.item.ySpd 0)
+              (and (not= col.normal.y 0) (= col.normal.x 0))
+              (set col.item.ySpd 0)
             )
             ; quando tocchiamo terra
-            (when (and (= value.normal.x 0) (< value.normal.y 0))
+            (when (and (= col.normal.x 0) (< col.normal.y 0))
               (set a-terra? true)
               (set salto-doppio? true)
             )
           )
 
           ; quando colpiamo l'obiettivo
-          (when (and (= value.item.name "Player") (= value.other.name "Objective"))
+          (when (and (= col.item.name "Player") (= col.other.name "Objective"))
             ; avanza livello
             (set livello (+ livello 1))
             (if (= nil (. listaLivelli livello))
@@ -246,15 +320,16 @@
             )
           )
           ; quando tocchiamo il fondo
-          (when (and (= value.item.name "Player") (= value.other.name "border-d"))
+          (when (and (= col.item.name "Player") (= col.other.name "border-d"))
             ;resetta livello
             (set-mode "mode-game" livello)
           )
         )
         
       )
+      (set player.verso (if (= player.xSpd 0) player.verso (< player.xSpd 0) :l :r))
       (set player.state (if a-terra?
-        (if (< player.xSpd v-idle)
+        (if (< (math.abs player.xSpd) v-idle)
           ; stato idle : fermo e per terra
           "idle"
           ; stato corsa: per terra e velocita nonnulla
@@ -276,8 +351,6 @@
     ; (love.graphics.push)
     ; (love.graphics.translate 0 (- 0 50 player.y))
     ; (love.graphics.scale 3 3)
-    ; (print "player" player.x player.y)
-    ; (print "camera" camera.x camera.y)
     (map:draw (- 0 camera.x) (- 0 camera.y) scale)
     (when pausa?
       (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))

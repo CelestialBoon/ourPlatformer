@@ -1,28 +1,15 @@
 PRIORITY
 
-piattaforme con molle
-
-sfondo livello
-    animazioni weather
-    parallasse
-
-personaggio non quadrato
-    cambiare forma
-    cambiare texture
-    animare sprite
-    cambiare verso
-
---------------------------------------
-
-armi
-walljump migliorato (migliorare walljump detection)
-
-
+altri oggetti
+    oggetti punto (come monete)
 nemici
     logica comportamento nemici
     sprites nemici
-altri oggetti
-    oggetti punto (come monete)
+
+--------------------------------------
+nuovi livelli
+armi
+walljump migliorato (migliorare walljump detection)
 punteggio
 spesa di punti
 NPC
@@ -35,13 +22,15 @@ musica
 SFX
 evento conclusione livello
 evento fine gioco
-nuovi livelli
 different update mechanics (passing different objects to :update ?)
     scale
     abilita speciali
     acqua e/o altri terreni non solidi
 segreti nei livelli
     tile illusorie (sembrano solide ma non lo sono)
+sfondo livello+
+    animazioni weather
+    parallasse
 
 
 coroutines
@@ -57,3 +46,10 @@ nuovo tileset
 schermata iniziale
 ridimensionare la fisica
 ridimensionare la telecamera
+personaggio non quadrato
+    cambiare forma
+    cambiare texture
+    animare sprite
+    cambiare verso
+sfondo
+piattaforme con molle

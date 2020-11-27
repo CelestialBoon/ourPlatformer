@@ -13,6 +13,7 @@
     (mode.activate ...)))
 
 (fn love.load []
+  (love.graphics.setDefaultFilter "nearest" "nearest")
   (canvas:setFilter "nearest" "nearest")
   (repl.start))
 
