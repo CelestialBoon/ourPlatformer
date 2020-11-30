@@ -1,16 +1,17 @@
 PRIORITY
+walljump migliorato (migliorare walljump detection)
+evento conclusione livello
 
-altri oggetti
-    oggetti punto (come monete)
-nemici
-    logica comportamento nemici
-    sprites nemici
+scale
+hi score
 
 --------------------------------------
+altri oggetti
+nemici
+    logica avanzata
+    nemici personalizzati per stagione
 nuovi livelli
 armi
-walljump migliorato (migliorare walljump detection)
-punteggio
 spesa di punti
 NPC
     dialoghi
@@ -20,7 +21,6 @@ menu opzioni
     risoluzione
 musica
 SFX
-evento conclusione livello
 evento fine gioco
 different update mechanics (passing different objects to :update ?)
     scale
@@ -31,7 +31,6 @@ segreti nei livelli
 sfondo livello+
     animazioni weather
     parallasse
-
 
 coroutines
 inclini
@@ -53,3 +52,17 @@ personaggio non quadrato
     cambiare verso
 sfondo
 piattaforme con molle
+punteggio
+moneta
+    prenderla dalla mappa (come bumper) e inserirla nel mondo
+    rimuovere moneta da layer base
+    aggiungere m a layer sprite
+    definire draw animato di m
+    gestire collisione con giocatore
+        sparizione
+            toglierla dal disegno
+            toglierla dalle collisioni
+        sistema punti (con aggiunta)
+nemici
+    logica comportamento nemici
+    sprites nemici

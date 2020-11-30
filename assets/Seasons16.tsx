@@ -7,6 +7,11 @@
   <terrain name="Fall" tile="0"/>
   <terrain name="Winter" tile="0"/>
  </terraintypes>
+ <tile id="2" type="enemy">
+  <properties>
+   <property name="name" value="bat"/>
+  </properties>
+ </tile>
  <tile id="36" type="terrain" terrain=",,,0">
   <properties>
    <property name="collidable" type="bool" value="true"/>
@@ -147,6 +152,7 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="64" type="coin"/>
  <tile id="65" type="terrain" terrain="1,,1,1">
   <properties>
    <property name="collidable" type="bool" value="true"/>
