@@ -1,8 +1,12 @@
 (local listaLivelli [:level1 :level2])
-(var livello nil)
+(var nLivello nil)
+(var punteggi {})
+(var pathPunteggi "save/punteggi.txt")
 
 (var tasti-premuti [])
 (var pausa? false)
+(var concluso? false)
+(var nuovoHiScore? false)
 (var det 0)
 
 (fn sleep [s]
@@ -64,20 +68,20 @@
 (var salto-doppio? true)
 
 (var (wWidth wHeight) (love.graphics.getDimensions))
-(set wWidth (/ wWidth scale))
-(set wHeight (/ wHeight scale))
+(var scaledWidth (/ wWidth scale))
+(var scaledHeight (/ wHeight scale))
 
 (fn camera.position [self player]
   (let [  map-width (* map.width map.tilewidth) 
           map-height (* map.height map.tileheight) 
-          half-screen-x (/ wWidth 2) 
-          half-screen-y (/ wHeight 2) ]
+          half-screen-x (/ scaledWidth 2) 
+          half-screen-y (/ scaledHeight 2) ]
     (var boundX (if (< player.x (- map-width half-screen-x))
         (math.max 0 (- player.x half-screen-x))
-        (math.min (- player.x half-screen-x) (- map-width wWidth))))
+        (math.min (- player.x half-screen-x) (- map-width scaledWidth))))
     (var boundY (if (< player.y (- map-height half-screen-y))
         (math.max 0 (- player.y half-screen-y))
-        (math.min (- player.y half-screen-y) (- map-height wHeight))))
+        (math.min (- player.y half-screen-y) (- map-height scaledHeight))))
     ; (print :playerX player.x :playerY player.y "map-width" map-width :map-height map-height :halfScreenX half-screen-x :halfScreenY half-screen-y :boundX boundX :boundY boundY)
     (camera:setPosition boundX boundY)
   )
@@ -85,9 +89,16 @@
 
 {
   :activate (fn activate [numLivello ...]
-    (set livello (or numLivello 1))
-    (set map (sti (.. "assets/levels/" (. listaLivelli livello) ".lua") [:bump]))
+    (set nLivello (or numLivello 1))
+    (set map (sti (.. "assets/levels/" (. listaLivelli nLivello) ".lua") [:bump]))
     (set world (bump.newWorld 32))
+
+    (var f (io.open pathPunteggi :r))
+    (each [line (f:lines)]
+        (var (level score) (string.match line "(.*): (%d+)"))
+        (tset punteggi level (tonumber score))
+    )
+    (f:close)
 
     (set punteggio 0)
 
@@ -323,9 +334,9 @@
         
   :update (fn update [dt set-mode]
     (set det dt)
-    (if (lume.find tasti-premuti "escape") (set pausa? (not pausa?)))
+    (if (and (lume.find tasti-premuti "escape") (not concluso?)) (set pausa? (not pausa?)))
     ; (sleep 0.1)
-    (when (not pausa?)
+    (when (and (not pausa?) (not concluso?))
       (var (xPlayer yPlayer wPlayer hPlayer) (world:getRect player))
       ; logica velocita giocatore
       (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd accel)))
@@ -371,7 +382,6 @@
 
           ;(pp collisions)
           (each [_ col (ipairs collisions)]
-            ; collisione con muri (per ora tutti slide)
             (when (= col.other.type :bumper)
               (set col.item.ySpd (- 0 v-bumper))
               (set salto-doppio? true)
@@ -382,10 +392,11 @@
               (world:remove col.other)
             )
             (when (and (= col.item.name :Player) (= col.other.type :enemy))
-              ;resetta livello
-              (set-mode "mode-game" livello)
+              ;resetta nLivello
+              (set-mode "mode-game" nLivello)
             )
             ; (pp col.other)
+            ; collisione con muri (per ora tutti slide)
             (when (= col.type "slide")
               (if 
                 ; muro verticale
@@ -407,17 +418,24 @@
 
             ; quando colpiamo l'obiettivo
             (when (and (= col.item.name "Player") (= col.other.name "Objective"))
-              ; avanza livello
-              (set livello (+ livello 1))
-              (if (= nil (. listaLivelli livello))
-                (set-mode "mode-end")
-                (set-mode "mode-game" livello)
+              (set concluso? true)
+              (var nomeLivello (. listaLivelli nLivello))
+              (var vecchio-punteggio (or (. punteggi nomeLivello) 0))
+              (when (< vecchio-punteggio punteggio)
+                (tset punteggi nomeLivello punteggio)
+                (set nuovoHiScore? true)
+                ; salva punteggio a file
+                (var f (io.open pathPunteggi :w))
+                (each [k v (pairs punteggi)]
+                    (f:write (.. k ": " v "\n"))
+                )
+                (f:close)
               )
             )
             ; quando tocchiamo il fondo
             (when (and (= col.item.name "Player") (= col.other.name "border-d"))
-              ;resetta livello
-              (set-mode "mode-game" livello)
+              ;resetta nLivello
+              (set-mode "mode-game" nLivello)
             )
           )
         ) 
@@ -438,6 +456,16 @@
         )
       )
 
+      ; controllo di prossimita walljump
+      (do
+        (var (items len) (world:project {} (- player.x 1) (- player.y 1) (+ playerWidth 2) (+ playerHeight 2) (- player.x 1) (- player.y 1)))
+        (each [_ col (ipairs items)]
+          (when (and (not= col.normal.x 0) (= col.normal.y 0))
+            (set salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+          )
+        )
+      )
+
       ; logica movimento nemici
       (each [_ enemy (ipairs spriteLayer.enemies)]
         (match enemy.name
@@ -453,6 +481,15 @@
         )
       )
     )
+    (when (and concluso? (lume.find tasti-premuti "return"))
+      ; prossimo livello
+      (set nLivello (+ nLivello 1))
+      (if (= nil (. listaLivelli nLivello))
+        (set-mode "mode-end")
+        (set-mode "mode-game" nLivello)
+      )
+    )
+
     (set tasti-premuti [])
   )
 
@@ -466,9 +503,15 @@
     (when pausa?
       (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))
     )
+    (when concluso?
+      (love.graphics.print "Congratulations!" (/ wWidth 2) (/ wHeight 2))
+      (when nuovoHiScore? 
+        (love.graphics.print (.. "Nuovo high score: " punteggio "!") (/ wWidth 2) (+ (/ wHeight 2) 10))
+      )
+    )
     ; (love.graphics.pop)
     ; (camera:unset)
-    (love.graphics.print (.. "Punteggio: " punteggio) (- (* wWidth scale) 100) 10)
+    (love.graphics.print (.. "Punteggio: " punteggio) (- wWidth 100) 10)
   )
 
   :keypressed (fn keypressed [key set-mode]

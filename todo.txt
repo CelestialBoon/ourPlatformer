@@ -1,12 +1,11 @@
 PRIORITY
-walljump migliorato (migliorare walljump detection)
-evento conclusione livello
 
-scale
-hi score
+altri oggetti
+    collezionabili
+
 
 --------------------------------------
-altri oggetti
+scale
 nemici
     logica avanzata
     nemici personalizzati per stagione
@@ -66,3 +65,10 @@ moneta
 nemici
     logica comportamento nemici
     sprites nemici
+walljump migliorato (migliorare walljump detection)
+evento conclusione livello
+hi score
+    lettura da file
+    update dell'high score alla fine del livello
+    visualizzazione dell'hi score
+    salvataggio su file
