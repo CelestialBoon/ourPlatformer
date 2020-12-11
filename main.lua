@@ -5,5 +5,7 @@ pp = function(x) print(require("lib.fennelview")(x)) end
 lume = require("lib.lume")
 bump = require("lib.bump")
 sti = require("lib.sti")
+util = require("util")
+lg = _G.love.graphics
 
 require("wrap")

@@ -2,7 +2,7 @@
 (local canvas (let [(w h) (love.window.getMode)]
                 (love.graphics.newCanvas w h)))
 
-(var scale 1)
+(local scale 1)
 
 ;; set the first mode
 (var mode (require "mode-init"))
