@@ -30,6 +30,7 @@
   :a-terra? false
   :salto-a-muro? false
   :salto-doppio? true
+  :shader (lg.newShader "shader.fs")
 })
 
 (local (wWidth wHeight) (love.graphics.getDimensions))
@@ -38,8 +39,8 @@
 (fn camera.position [self]
   (let [  map-width (* state.map.width state.map.tilewidth) 
           map-height (* state.map.height state.map.tileheight) 
-          half-screen-x (/ scaledWidth 2) 
-          half-screen-y (/ scaledHeight 2) ]
+          half-screen-x (math.floor (/ scaledWidth 2)) 
+          half-screen-y (math.floor (/ scaledHeight 2)) ]
     (var boundX (if (< state.player.x (- map-width half-screen-x))
         (math.max 0 (- state.player.x half-screen-x))
         (math.min (- state.player.x half-screen-x) (- map-width scaledWidth))))

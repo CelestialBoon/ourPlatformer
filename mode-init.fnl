@@ -11,7 +11,6 @@
     )
     :keypressed (fn keypressed [key set-mode]
         ; se preme invio, comincia gioco
-        (print key)
         (if (= key "return")
             (set-mode "mode-game" 1)
         )

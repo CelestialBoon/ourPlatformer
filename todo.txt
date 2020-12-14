@@ -1,11 +1,11 @@
 PRIORITY
 
-visualizza invincibilita
-
+slime glitchato???
+sfondo livello+
+    animazioni weather
++nemici
 
 --------------------------------------
-aggiustare posizionamento giocatore a schermo
-slime glitchato???
 altri oggetti
     + oggetti da punti
     collezionabili
@@ -32,10 +32,10 @@ different update mechanics (passing different objects to :update ?)
     acqua e/o altri terreni non solidi
 segreti nei livelli
     tile illusorie (sembrano solide ma non lo sono)
-sfondo livello+
-    animazioni weather
-    parallasse
 armi?
+
+sfondo con https://love2d.org/wiki/Texture:setWrap
+tileset con https://love2d.org/wiki/TextureType
 
 coroutines
 inclini
@@ -56,6 +56,7 @@ personaggio non quadrato
     animare sprite
     cambiare verso
 sfondo
+    parallasse
 piattaforme con molle
 punteggio
 moneta
@@ -83,3 +84,5 @@ nemico a terra
 rendere permanente l'ottenimento gemma
     spada
 punti vita (+ invincibilita)
+visualizza invincibilita
+aggiustare posizionamento giocatore a schermo

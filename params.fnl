@@ -8,7 +8,7 @@
   :weaponDuration .4
 
   :playerInvinc 1.5
-  :enemyInvinc 1
+  :enemyInvinc 1.55
 
   :accel 0.005
   :attrito 0.013

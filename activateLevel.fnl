@@ -144,6 +144,7 @@
 
     (set state.player (state.world:add state.player state.player.x state.player.y params.playerWidth params.playerHeight))
     (set state.obiet (state.world:add state.obiet state.obiet.x state.obiet.y state.obiet.width state.obiet.height))
+    (local player state.player)
 
     (var map-width (* state.map.width state.map.tilewidth))
     (var map-height (* state.map.height state.map.tileheight))
@@ -179,14 +180,14 @@
 
     (set state.spriteLayer.draw (fn [self]
       ;cambio canvas
-      (var oldCanvas (lg.getCanvas))
-      (lg.setCanvas state.creatureCanvas)
-      (lg.clear)
-      (lg.push)
-      ; (lg.origin)
-      ; (lg.translate (- 0 camera.x) (- 0 camera.y))
-      ; (lg.scale params.scale)
-      (lg.translate (math.floor (/ camera.x 2)) (math.floor (/ camera.y 2)))
+      ; (var oldCanvas (lg.getCanvas))
+      ; (lg.setCanvas state.creatureCanvas)
+      ; (lg.clear)
+      ; (lg.push)
+      ; ; (lg.origin)
+      ; ; (lg.translate (- 0 camera.x) (- 0 camera.y))
+      ; ; (lg.scale params.scale)
+      ; (lg.translate (math.floor (/ camera.x 2)) (math.floor (/ camera.y 2)))
 
       ; disegna giocatore
       ; determina il frame
@@ -197,18 +198,30 @@
         :run   (values 2 (nextFrame self.player 3 .15 state.dt))
       ))
 
+      ; (print (- (math.floor camera.y) (math.floor self.player.y)))
+      (when (< 0 player.invinc)
+        (if (< 0.15 (% player.invinc 0.3)) 
+          (lg.setColor 1 0 0 1)
+          (lg.setColor 0.5 0 0 1))
+        (lg.setShader state.shader)
+      )
       (lg.draw self.sprites.player (lg.newQuad
         (* playerColumn 16) 
         (* playerRow 16) 
         16 16 
         (self.sprites.player:getDimensions))
         ; posizione e rotazione
-        self.player.x self.player.y 0
+        (math.floor self.player.x) (math.floor self.player.y) 0
         ;scala 
         (if (= state.player.verso :l) -1 1) 1
         ;offset
         (if (= state.player.verso :r) (values 3 0) (values 13 0))
       )
+      (when (< 0 player.invinc)
+        (lg.setShader)
+        (lg.setColor 1 1 1 1)
+      )
+
       ;disegna spada
       (when (> state.player.weapon 0) 
       (lg.draw self.sprites.player (lg.newQuad
@@ -230,6 +243,13 @@
           :slime (values 1 3 .60 0 1)       
         ))
         (var enemyColumn (nextFrame enemy (- enemyAnimLength 1) enemyAnimSpeed state.dt))
+        
+        (when (< 0 enemy.invinc)
+          (if (< 0.15 (% enemy.invinc 0.3)) 
+            (lg.setColor 1 0 0 1)
+            (lg.setColor 0.5 0 0 1))
+          (lg.setShader state.shader)
+        )
         (lg.draw state.spriteLayer.sprites.enemies (lg.newQuad
           (* enemyColumn 16) 
           (* enemyRow 16) 
@@ -242,6 +262,10 @@
           ;offset
           (if (= enemy.verso :r) (values enemy.ox enemy.oy) (values (- 16 enemy.ox) enemy.oy))
         )
+        (when (< 0 enemy.invinc)
+          (lg.setShader)
+          (lg.setColor 1 1 1 1)
+        )
       )
 
       ;cambio canvas
@@ -249,9 +273,9 @@
       ; (lg.push)
       ; (lg.origin)
       ; (lg.scale params.scale)
-      (lg.setCanvas oldCanvas)
-      (lg.draw state.creatureCanvas)
-      (lg.pop)
+      ; (lg.setCanvas oldCanvas)
+      ; (lg.draw state.creatureCanvas)
+      ; (lg.pop)
 
       (lg.draw self.sprites.obiet self.obiet.x self.obiet.y 0 1 1 0 0)
 
