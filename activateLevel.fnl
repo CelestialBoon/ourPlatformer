@@ -1,21 +1,16 @@
 (import-macros {: icollect} :macros)
 
 (fn activateInit [state params camera]
-  (fn nextFrame [tabl max tick dt]
-    (set tabl.time (+ tabl.time dt))
-    (when (> tabl.time tick)
-      (set tabl.frame (if (>= tabl.frame max) 0 (+ tabl.frame 1)))
-      (set tabl.time (- tabl.time tick))
-    )
-    tabl.frame
+  (fn nextFrame [nFrames tick]
+    (% (math.floor (/ state.clock tick)) nFrames)
   )
 
   (fn activate [numLivello ...]
     (set state.nLivello (or numLivello 1))
     (set state.map (sti (.. "assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
     (set state.world (bump.newWorld 32))
-    (set state.creatureCanvas (lg.newCanvas 
-              (* state.map.width state.map.tilewidth) 
+    (set state.creatureCanvas (lg.newCanvas
+              (* state.map.width state.map.tilewidth)
               (* state.map.height state.map.tileheight)))
 
     (each [line (io.lines params.pathPunteggi)]
@@ -38,7 +33,7 @@
     (set state.spriteLayer.sprites {})
     (set state.spriteLayer.coins [])
     (set state.spriteLayer.enemies [])
-    (set state.spriteLayer.gems [])
+    (set state.spriteLayer.items [])
 
     ; inizializzazione spawns
     (each [key value (pairs state.map.objects)]
@@ -79,7 +74,10 @@
                 enemyName tile.properties.name
                 (ox oy w h) (match enemyName
                               :bat (values 2 2 9 8)
-                              :slime (values 1 6 14 9))
+                              :slime (values 1 6 14 9)
+                              :ghost (values 2 0 12 13)
+                              :spider (values 3 7 10 9)
+                )
                 gid (+ tileset.firstgid tile.id)
                ]
           (when (. state.map.tileInstances gid)
@@ -127,15 +125,23 @@
           :x 0
           :y 0
           :name :gem
-        } true)] 
-          (set state.spriteLayer.gems (lume.concat state.spriteLayer.gems a)))
+        } true)]
+          (set state.spriteLayer.items (lume.concat state.spriteLayer.items a)))
+        (let [a (addCollidable :heart {
+          :height 16
+          :width 16
+          :x 0
+          :y 0
+          :name :heart
+        } true)]
+          (set state.spriteLayer.items (lume.concat state.spriteLayer.items a)))
         (addCollidable :bumper {
           :height 2
           :width state.map.tileheight
           :x 0
           :y 14
           :name :bumper
-        } false) 
+        } false)
       )
     )
 
@@ -164,13 +170,17 @@
       :frame 1
       :weapon 0
       :invinc 0
+      :a-terra? false
+      :salto-a-muro? false
+      :salto-doppio? true
     })
 
-    (set state.gemma (. state.spriteLayer.gems 1))
-    (set state.gemma.presa? (. (. state.punteggi (. params.listaLivelli state.nLivello) state.gemma)))
+    (set state.gemma (lume.match state.spriteLayer.items #(= $1.name :gem)))
+    (set state.gemma.preso? (. (. state.punteggi (. params.listaLivelli state.nLivello)) :gemma))
 
+    (set state.tilesetSprite (or state.tilesetSprite (lg.newImage "assets/SeasonsTilesheet.png")))
+    (var mainbgSprite (lg.newImage (.. "assets/backgrounds/" state.map.properties.season ".png")))
     (set state.spriteLayer.sprites.obiet (or state.spriteLayer.sprites.obiet (lg.newImage "assets/objective.png")))
-    (set state.spriteLayer.sprites.gemma (or state.spriteLayer.sprites.gemma (lg.newImage "assets/sprites/gem.png")))
     (set state.spriteLayer.sprites.player (or state.spriteLayer.sprites.player (lg.newImage "assets/sprites/protag.png")))
     (set state.spriteLayer.sprites.coins (or state.spriteLayer.sprites.coins (lg.newImage "assets/sprites/coin.png")))
     (set state.spriteLayer.sprites.enemies (or state.spriteLayer.sprites.enemies (lg.newImage "assets/sprites/enemies.png")))
@@ -179,15 +189,6 @@
     (set state.spriteLayer.obiet state.obiet)
 
     (set state.spriteLayer.draw (fn [self]
-      ;cambio canvas
-      ; (var oldCanvas (lg.getCanvas))
-      ; (lg.setCanvas state.creatureCanvas)
-      ; (lg.clear)
-      ; (lg.push)
-      ; ; (lg.origin)
-      ; ; (lg.translate (- 0 camera.x) (- 0 camera.y))
-      ; ; (lg.scale params.scale)
-      ; (lg.translate (math.floor (/ camera.x 2)) (math.floor (/ camera.y 2)))
 
       ; disegna giocatore
       ; determina il frame
@@ -195,24 +196,23 @@
         :idle  (values 0 0)
         :jumpu (values 1 0)
         :jumpd (values 1 1)
-        :run   (values 2 (nextFrame self.player 3 .15 state.dt))
+        :run   (values 2 (nextFrame 4 .15))
       ))
 
-      ; (print (- (math.floor camera.y) (math.floor self.player.y)))
       (when (< 0 player.invinc)
-        (if (< 0.15 (% player.invinc 0.3)) 
+        (if (< 0.15 (% player.invinc 0.3))
           (lg.setColor 1 0 0 1)
           (lg.setColor 0.5 0 0 1))
         (lg.setShader state.shader)
       )
       (lg.draw self.sprites.player (lg.newQuad
-        (* playerColumn 16) 
-        (* playerRow 16) 
-        16 16 
+        (* playerColumn 16)
+        (* playerRow 16)
+        16 16
         (self.sprites.player:getDimensions))
         ; posizione e rotazione
         (math.floor self.player.x) (math.floor self.player.y) 0
-        ;scala 
+        ;scala
         (if (= state.player.verso :l) -1 1) 1
         ;offset
         (if (= state.player.verso :r) (values 3 0) (values 13 0))
@@ -223,14 +223,14 @@
       )
 
       ;disegna spada
-      (when (> state.player.weapon 0) 
+      (when (> state.player.weapon 0)
       (lg.draw self.sprites.player (lg.newQuad
         16 0
-        16 16 
+        16 16
         (self.sprites.player:getDimensions))
         ; posizione e rotazione
         self.player.x self.player.y 0
-        ;scala 
+        ;scala
         (if (= state.player.verso :l) -1 1) 1
         ;offset
         (if (= state.player.verso :r) (values -10 -2) (values 0 -2))
@@ -238,26 +238,28 @@
 
       ;disegna nemici
       (each [_ enemy (ipairs state.spriteLayer.enemies)]
-        (var (enemyRow enemyAnimLength enemyAnimSpeed ox oy) (match enemy.name 
+        (var (enemyRow enemyAnimLength enemyAnimSpeed ox oy) (match enemy.name
           :bat (values 0 3 .30 0 0)
-          :slime (values 1 3 .60 0 1)       
+          :slime (values 1 3 .60 0 1)
+          :ghost (values 2 3 .60 0 0)
+          :spider (values 3 3 .60 0 0)
         ))
-        (var enemyColumn (nextFrame enemy (- enemyAnimLength 1) enemyAnimSpeed state.dt))
-        
+        (var enemyColumn (nextFrame enemyAnimLength enemyAnimSpeed))
+
         (when (< 0 enemy.invinc)
-          (if (< 0.15 (% enemy.invinc 0.3)) 
+          (if (< 0.15 (% enemy.invinc 0.3))
             (lg.setColor 1 0 0 1)
             (lg.setColor 0.5 0 0 1))
           (lg.setShader state.shader)
         )
         (lg.draw state.spriteLayer.sprites.enemies (lg.newQuad
-          (* enemyColumn 16) 
-          (* enemyRow 16) 
-          16 16 
+          (* enemyColumn 16)
+          (* enemyRow 16)
+          16 16
           (state.spriteLayer.sprites.enemies:getDimensions))
           ; posizione e rotazione
-          (+ ox enemy.x) (+ oy enemy.y) 0 
-          ;scala 
+          (+ ox enemy.x) (+ oy enemy.y) 0
+          ;scala
           (if (= enemy.verso :r) 1 -1) 1
           ;offset
           (if (= enemy.verso :r) (values enemy.ox enemy.oy) (values (- 16 enemy.ox) enemy.oy))
@@ -268,30 +270,25 @@
         )
       )
 
-      ;cambio canvas
-      ; (lg.pop)
-      ; (lg.push)
-      ; (lg.origin)
-      ; (lg.scale params.scale)
-      ; (lg.setCanvas oldCanvas)
-      ; (lg.draw state.creatureCanvas)
-      ; (lg.pop)
-
       (lg.draw self.sprites.obiet self.obiet.x self.obiet.y 0 1 1 0 0)
 
-      (when (not state.gemma.presa?) (lg.draw state.spriteLayer.sprites.gemma state.gemma.x state.gemma.y 0 1 1 0 0))
-
+      (each [_ item (ipairs state.spriteLayer.items)]
+        (when (not item.preso?)
+          (util.drawTileFromImage state.tilesetSprite (. params.tiles item.name) item.x item.y)
+        )
+      )
+      
       ; disegna monete
-      (local coinColumn (nextFrame state.theCoin 3 .10 state.dt))
+      (local coinColumn (nextFrame 3 .10))
       (each [_ coin (ipairs state.spriteLayer.coins)]
         (local coinRow (match coin.type
                               :coing 0
                               :coinp 2
         ))
         (lg.draw state.spriteLayer.sprites.coins (lg.newQuad
-          (* coinColumn 16) 
-          (* coinRow 16) 
-          16 16 
+          (* coinColumn 16)
+          (* coinRow 16)
+          16 16
           (state.spriteLayer.sprites.coins:getDimensions))
           ; posizione e rotazione
           coin.x coin.y 0 1 1
@@ -300,29 +297,118 @@
       )
     ))
 
-
     (var bgLayer (state.map:addCustomLayer "background" 1))
 
-    (var mainbgSprite (lg.newImage (.. "assets/backgrounds/" state.map.properties.season "BG.png")))
-
-    (set bgLayer.draw (fn [self] 
-      (lg.setBackgroundColor 
-        (match state.map.properties.season
-          :spring (values 0.282 0.4 0.773 1)
-          :summer (values 0 0 0 1)
-          :fall   (values 0 0 0 1)
-          :winter (values 0 0 0 1)
-        ))
+    (set bgLayer.draw (fn [self]
+      ; parallasse
+      (local (wWidth wHeight) (lg.getDimensions))
       (var bgx (* camera.x 0.8))
       (var bgy (- (* camera.y 0.8) 200))
       (var bgscale 3)
-      (lg.draw mainbgSprite 
-        ; x y rot
-        bgx bgy 0
-        ; scala
-        bgscale
-      )
-    ))
+
+      (match state.map.properties.season
+          :spring (do
+            (lg.setBackgroundColor (values 0.282 0.4 0.773 1))
+            ; draw sfondo
+            (lg.draw mainbgSprite (lg.newQuad
+                0 0 160 144
+                (mainbgSprite:getDimensions)
+              )
+              ; x y rot
+              bgx bgy 0
+              ; scala
+              bgscale
+            )
+            ; draw acqua
+            (lg.draw mainbgSprite (lg.newQuad
+              0 (+ (* 32 (nextFrame 2 1)) 144) 160 32
+              (mainbgSprite:getDimensions)
+              )
+              bgx (+ (* bgscale 96) bgy) 0 bgscale
+            )
+          )
+          :summer (do
+            (lg.setBackgroundColor (values 0.282 0.4 0.773 1))
+            ; draw sfondo
+            (lg.draw mainbgSprite (lg.newQuad
+                0 0 160 144
+                (mainbgSprite:getDimensions)
+              )
+              ; x y rot
+              bgx bgy 0
+              ; scala
+              bgscale
+            )
+            ; sole
+            (lg.draw state.tilesetSprite (lg.newQuad
+                80 0 16 16
+                (state.tilesetSprite:getDimensions)
+              )
+              ; x y rot
+              (- camera.x -100 (* 0.1 bgx)) (+ 120 bgy) 0
+              ; scala
+              bgscale
+            )
+            ; riflessi mare (causano righe orizzontali blu a caso)
+            (for [i 0 9]
+              (lg.draw mainbgSprite (lg.newQuad
+                (* 16 (nextFrame 2 1)) 144 16 16 (mainbgSprite:getDimensions))
+                (+ bgx (* bgscale 16 i)) (+ bgy (* bgscale 95)) 0 
+                bgscale
+              )
+            )
+          )
+          :fall (do
+            (lg.setBackgroundColor (values 0.31 0.247 0.443 1))
+            ; draw sfondo
+            (lg.draw mainbgSprite (lg.newQuad
+                0 0 160 144
+                (mainbgSprite:getDimensions)
+              )
+              ; x y rot
+              bgx bgy 0
+              ; scala
+              bgscale
+            )
+          )
+          :winter (do
+            (lg.setBackgroundColor (values 0.31 0.247 0.443 1))
+            ; draw sfondo
+            (lg.draw mainbgSprite (lg.newQuad
+                0 0 160 144
+                (mainbgSprite:getDimensions)
+              )
+              ; x y rot
+              bgx bgy 0
+              ; scala
+              bgscale
+            )
+            (if (= 0 (nextFrame 2 1))
+              ; stelle grosse
+              (let [pos [[0 3] [2 2] [6 4] [8 2]]]
+                (each [_ [x y] (ipairs pos)]
+                  (lg.draw mainbgSprite (lg.newQuad
+                    16 144 16 16
+                    (mainbgSprite:getDimensions))
+                    (+ bgx (* x bgscale 16)) (+ bgy (* y bgscale 16)) 0
+                    bgscale
+                  )
+                )
+              )
+              ; stelle piccole
+              (let [pos [[1 3] [3 4] [5 2] [7 3] [9 4]]]
+                (each [_ [x y] (ipairs pos)]
+                  (lg.draw mainbgSprite (lg.newQuad
+                    0 144 16 16
+                    (mainbgSprite:getDimensions))
+                    (+ bgx (* x bgscale 16)) (+ bgy (* y bgscale 16)) 0
+                    bgscale
+                  )
+                )
+              )
+            )
+          )
+    )))
 
     ; fine dell'inizializzazione spawns
     ; (state.map:removeLayer "Spawn")

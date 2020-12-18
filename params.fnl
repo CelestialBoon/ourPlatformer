@@ -10,15 +10,16 @@
   :playerInvinc 1.5
   :enemyInvinc 1.55
 
-  :accel 0.005
-  :attrito 0.013
-  :v-salto-terra 0.4
-  :v-salto-muro-v .3
-  :v-salto-muro-h .3
-  :v-salto-doppio 0.3
-  :v-bumper 0.7
-  :gravita 0.002
-  :v-idle 0.001
-  :speeds {:bat 0.1 :slime 0.1}
-  :hp {:player 3 :bat 2 :slime 2}
+  :accel 1.8
+  :attrito 4
+  :v-salto-terra 200
+  :v-salto-muro-v 150
+  :v-salto-muro-h 150
+  :v-salto-doppio 150
+  :v-bumper 300
+  :gravita 400
+  :v-idle 2
+  :speeds {:bat 30 :slime 30 :ghost 20 :spider 45}
+  :hp {:player 3 :bat 2 :slime 2 :ghost 2 :spider 2}
+  :tiles {:heart {:tx 3 :ty 7} :gem {:tx 2 :ty 7} :uiheart {:tx 12 :ty 3} :explosion {:tx 0 :ty 9 :flen 5 :tick [.05 .10 .15 .20 .25]}}
 }

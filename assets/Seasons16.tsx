@@ -243,6 +243,7 @@
  <tile id="105" type="coinp"/>
  <tile id="106" type="coing"/>
  <tile id="107" type="gem"/>
+ <tile id="108" type="heart"/>
  <tile id="120" type="enemy">
   <properties>
    <property name="ground?" type="bool" value="false"/>
@@ -253,6 +254,18 @@
   <properties>
    <property name="ground?" type="bool" value="true"/>
    <property name="name" value="slime"/>
+  </properties>
+ </tile>
+ <tile id="122" type="enemy">
+  <properties>
+   <property name="ground?" type="bool" value="false"/>
+   <property name="name" value="ghost"/>
+  </properties>
+ </tile>
+ <tile id="123" type="enemy">
+  <properties>
+   <property name="ground?" type="bool" value="true"/>
+   <property name="name" value="spider"/>
   </properties>
  </tile>
 </tileset>

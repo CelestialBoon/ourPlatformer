@@ -1,3 +1,5 @@
+(import-macros {: icollect} :macros)
+
 (var camera (require "camera"))
 (local activateInit (require :activateLevel))
 (local updateInit (require :updateLevel))
@@ -7,6 +9,9 @@
 (local state {
   :nLivello nil
   :dt 0
+  :clock 0
+  :dts []
+  :frame 0
   :tasti-premuti []
   :pausa? false
   :concluso? false
@@ -27,10 +32,8 @@
   }
   :creatureCanvas nil
 
-  :a-terra? false
-  :salto-a-muro? false
-  :salto-doppio? true
-  :shader (lg.newShader "shader.fs")
+  :shader (lg.newShader "assets/shader.fs")
+  :drawfs []
 })
 
 (local (wWidth wHeight) (love.graphics.getDimensions))
@@ -59,10 +62,6 @@
 
   :draw (fn draw [message]
     (camera:position)
-    ; (camera:set)
-    ; (love.graphics.push)
-    ; (love.graphics.translate 0 (- 0 50 state.player.y))
-    ; (love.graphics.params.scale 3 3)
     (state.map:draw (- 0 camera.x) (- 0 camera.y) params.scale)
     (when state.pausa?
       (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))
@@ -73,9 +72,13 @@
         (love.graphics.print (.. "Nuovo high score: " state.punteggio "!") (/ wWidth 2) (+ (/ wHeight 2) 10))
       )
     )
-    ; (love.graphics.pop)
-    ; (camera:unset)
+    (for [i 1 state.player.hp]
+      (util.drawTileFromImage state.tilesetSprite params.tiles.uiheart (+ 10 (* i 20)) 10 2)
+    )
+    
     (love.graphics.print (.. "Punteggio: " state.punteggio) (- wWidth 100) 10)
+    (love.graphics.print (.. "FPS: " (math.floor (/ 1 (util.average state.dts)))) (- wWidth 100) 30)
+    (set state.drawfs (icollect [_ f (ipairs state.drawfs)] (f)))
   )
 
   :keypressed (fn keypressed [key set-mode]

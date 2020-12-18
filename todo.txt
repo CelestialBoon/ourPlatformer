@@ -1,11 +1,13 @@
 PRIORITY
 
-slime glitchato???
-sfondo livello+
-    animazioni weather
-+nemici
+animazione morte
+    attaccare l'animazione al bersaglio
+    il giocatore deve smettere di muoversi
+    eventuale reset livello alla fine
 
 --------------------------------------
+sfondo livello+
+    animazioni weather
 altri oggetti
     + oggetti da punti
     collezionabili
@@ -86,3 +88,8 @@ rendere permanente l'ottenimento gemma
 punti vita (+ invincibilita)
 visualizza invincibilita
 aggiustare posizionamento giocatore a schermo
+animazione primavera
+fisica indipendente dal framerate
+fps counter
+oggetto recupero hp
+grafica hp

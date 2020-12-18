@@ -1,7 +1,7 @@
 (fn updateInit [state params]
   (fn filter [item other] 
     (if 
-      (and (= item.name :Player) (util.equals other.name [:Objective :bumper :coing :coinp :gem]))
+      (and (= item.name :Player) (util.equals other.name [:Objective :bumper :coing :coinp :gem :heart]))
       "cross"
       "slide")
   )
@@ -34,8 +34,14 @@
   (fn update [dt set-mode]
     (local player state.player)
     (set state.dt dt)
+    (set state.clock (% (+ dt state.clock) 27720))
+    (set state.frame (+ 1 state.frame))
+    (tset state.dts (+ 1 (% state.frame 30)) dt)
     (if (and (lume.find state.tasti-premuti "escape") (not state.concluso?)) (set state.pausa? (not state.pausa?)))
     ; (sleep 0.1)
+    (when (lume.find state.tasti-premuti "c")
+      (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2) 3)))
+
     (when (and (not state.pausa?) (not state.concluso?))
       (var (xPlayer yPlayer wPlayer hPlayer) (state.world:getRect player))
       ; logica velocita giocatore
@@ -43,18 +49,18 @@
       (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd params.accel)))
       ; gestione salti
       (if (lume.find state.tasti-premuti "z") 
-        (if state.a-terra?
+        (if player.a-terra?
           (set player.ySpd (- player.ySpd params.v-salto-terra))
-          state.salto-a-muro?
+          player.salto-a-muro?
           (do
             (set player.ySpd (- 0 params.v-salto-muro-v))
-            (set player.xSpd (if (= "left" state.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
-            ;(print "salto a muro verso " state.salto-a-muro?)
+            (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
+            ;(print "salto a muro verso " player.salto-a-muro?)
           )
-          state.salto-doppio?
+          player.salto-doppio?
           (do 
             (set player.ySpd (- 0 params.v-salto-doppio))
-            (set state.salto-doppio? false)
+            (set player.salto-doppio? false)
           )
         )
       )
@@ -66,20 +72,20 @@
       )
 
       ; logica params.attrito 
-      (set player.xSpd (- player.xSpd (* params.attrito player.xSpd)))
+      (set player.xSpd (- player.xSpd (* params.attrito dt player.xSpd)))
 
       ; params.gravita
-      (set player.ySpd (+ player.ySpd params.gravita))
+      (set player.ySpd (+ player.ySpd (* dt params.gravita)))
 
       ; logica collisioni giocatore
       (do 
-        (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer player.xSpd) (+ yPlayer player.ySpd) filter))
+        (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer (* dt player.xSpd)) (+ yPlayer (* dt player.ySpd)) filter))
         (set player.x actualX)
         (set player.y actualY)
 
         ; check saltabilita per prossimo update
-        (set state.a-terra? false)
-        (set state.salto-a-muro? false)
+        (set player.a-terra? false)
+        (set player.salto-a-muro? false)
         (when (> collisionsNumber 0)
           (var cols (if (= collisionsNumber 1)
             [collisions]
@@ -89,7 +95,7 @@
           (each [_ col (ipairs collisions)]
             (when (= col.other.type :bumper)
               (set col.item.ySpd (- 0 params.v-bumper))
-              (set state.salto-doppio? true)
+              (set player.salto-doppio? true)
             )
             (when (and (= col.item.name :Player) (= col.other.type :coing))
               (set state.punteggio (+ state.punteggio 5))
@@ -112,7 +118,7 @@
                 (and (not= col.normal.x 0) (= col.normal.y 0))
                 (do 
                   (set col.item.xSpd 0)
-                  (set state.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+                  (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
                 )
                 ; muro orizzontale
                 (and (not= col.normal.y 0) (= col.normal.x 0))
@@ -120,8 +126,8 @@
               )
               ; quando tocchiamo terra
               (when (and (= col.normal.x 0) (< col.normal.y 0))
-                (set state.a-terra? true)
-                (set state.salto-doppio? true)
+                (set player.a-terra? true)
+                (set player.salto-doppio? true)
               )
             )
 
@@ -141,9 +147,16 @@
                 )
               )
             )
-            (when (= col.other.type :gem)
-              (set state.gemma.presa? true)
+            (when (and (= col.other.type :gem) (not col.other.preso?))
+              (set state.punteggio (+ state.punteggio 50))
+              (set col.other.preso? true)
             )
+
+            (when (and (= col.other.type :heart) (not col.other.preso?))
+              (set player.hp (+ player.hp 1))
+              (set col.other.preso? true)
+            )
+
             ; quando tocchiamo il fondo
             (when (and (= col.item.name "Player") (= col.other.name "border-d"))
               ;resetta state.nLivello
@@ -153,7 +166,7 @@
         ) 
       
         (set player.verso (if (= player.xSpd 0) player.verso (< player.xSpd 0) :l :r))
-        (set player.state (if state.a-terra?
+        (set player.state (if player.a-terra?
           (if (< (math.abs player.xSpd) params.v-idle)
             ; stato idle : fermo e per terra
             "idle"
@@ -176,7 +189,7 @@
         (when (> len 0)
           (each [_ col (ipairs items)]
             (when (and (not= col.normal.x 0) (= col.normal.y 0))
-              (set state.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+              (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
       ))))
 
       ;logica spada
@@ -193,7 +206,7 @@
 
       ; logica movimento nemici
       (each [_ enemy (ipairs state.spriteLayer.enemies)]
-        (set enemy.x (if (= enemy.verso :r) (+ enemy.x (. params.speeds enemy.name)) (- enemy.x (. params.speeds enemy.name))))
+        (set enemy.x (if (= enemy.verso :r) (+ enemy.x (* dt (. params.speeds enemy.name))) (- enemy.x (* dt (. params.speeds enemy.name)))))
 
         (var (actualX actualY collisions collisionsNumber) (state.world:move enemy enemy.x enemy.y filter))
         (set enemy.x actualX)
