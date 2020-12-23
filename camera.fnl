@@ -19,4 +19,8 @@
   (set self.y (or y self.y))
 )
 
+(fn camera.relPos [self wx wy]
+  (values (- wx self.x) (- wy self.y))
+)
+
 camera

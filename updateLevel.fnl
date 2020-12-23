@@ -3,7 +3,16 @@
     (if 
       (and (= item.name :Player) (util.equals other.name [:Objective :bumper :coing :coinp :gem :heart]))
       "cross"
+      (and (= item.name :Player) (-?> other (. :layer) (. :properties) (. :passable)))
+      "selectiveSlide"
       "slide")
+  )
+
+  (fn diePlayer []
+    (set state.playerMorto? 0)
+    ;rimuove giocatore da collisioni
+    (state.world:remove state.player)
+    (util.animPlayerDeath state)
   )
 
   (fn attack [attacker target]
@@ -12,9 +21,7 @@
       (if (= target.name :Player)
         (do
           (set target.hp (- target.hp 1))
-          (if (<= target.hp 0)
-            ;giocatore morto
-            (set state.playerDead? true)
+          (when (> target.hp 0)            
             (set target.invinc params.playerInvinc)
           )
         )
@@ -24,12 +31,7 @@
             (do 
               (lume.remove state.spriteLayer.enemies target)
               (state.world:remove target))
-            (set target.invinc params.enemyInvinc)
-          )
-        )
-      )
-    )
-  )
+            (set target.invinc params.enemyInvinc) ) ) ) ) )
 
   (fn update [dt set-mode]
     (local player state.player)
@@ -37,48 +39,50 @@
     (set state.clock (% (+ dt state.clock) 27720))
     (set state.frame (+ 1 state.frame))
     (tset state.dts (+ 1 (% state.frame 30)) dt)
+
     (if (and (lume.find state.tasti-premuti "escape") (not state.concluso?)) (set state.pausa? (not state.pausa?)))
     ; (sleep 0.1)
     (when (lume.find state.tasti-premuti "c")
-      (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2) 3)))
+      (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2))))
 
     (when (and (not state.pausa?) (not state.concluso?))
-      (var (xPlayer yPlayer wPlayer hPlayer) (state.world:getRect player))
-      ; logica velocita giocatore
-      (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd params.accel)))
-      (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd params.accel)))
-      ; gestione salti
-      (if (lume.find state.tasti-premuti "z") 
-        (if player.a-terra?
-          (set player.ySpd (- player.ySpd params.v-salto-terra))
-          player.salto-a-muro?
-          (do
-            (set player.ySpd (- 0 params.v-salto-muro-v))
-            (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
-            ;(print "salto a muro verso " player.salto-a-muro?)
-          )
-          player.salto-doppio?
-          (do 
-            (set player.ySpd (- 0 params.v-salto-doppio))
-            (set player.salto-doppio? false)
+      (when (not state.playerMorto?)
+        (var (xPlayer yPlayer wPlayer hPlayer) (state.world:getRect player))
+        ; logica velocita giocatore
+        (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd params.accel)))
+        (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd params.accel)))
+        ; gestione salti
+        (if (lume.find state.tasti-premuti "z") 
+          (if player.a-terra?
+            (set player.ySpd (- player.ySpd params.v-salto-terra))
+            player.salto-a-muro?
+            (do
+              (set player.ySpd (- 0 params.v-salto-muro-v))
+              (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
+              ;(print "salto a muro verso " player.salto-a-muro?)
+            )
+            player.salto-doppio?
+            (do 
+              (set player.ySpd (- 0 params.v-salto-doppio))
+              (set player.salto-doppio? false)
+            )
           )
         )
-      )
-      ; a 0 la spada è disattivata
-      (when (> player.weapon 0) (set player.weapon (+ player.weapon dt)))
-      (when (> player.weapon params.weaponDuration) (set player.weapon 0))
-      (when (and (lume.find state.tasti-premuti "x") (= 0 player.weapon)) 
-        (set player.weapon dt)
-      )
+        ; a 0 la spada è disattivata
+        (when (> player.weapon 0) (set player.weapon (+ player.weapon dt)))
+        (when (> player.weapon params.weaponDuration) (set player.weapon 0))
+        (when (and (lume.find state.tasti-premuti "x") (= 0 player.weapon)) 
+          (set player.weapon dt)
+        )
 
-      ; logica params.attrito 
-      (set player.xSpd (- player.xSpd (* params.attrito dt player.xSpd)))
+        ; logica params.attrito 
+        (set player.xSpd (- player.xSpd (* params.attrito dt player.xSpd)))
 
-      ; params.gravita
-      (set player.ySpd (+ player.ySpd (* dt params.gravita)))
+        ; params.gravita
+        (set player.ySpd (+ player.ySpd (* dt params.gravita)))
 
-      ; logica collisioni giocatore
-      (do 
+        ; logica collisioni giocatore
+      
         (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer (* dt player.xSpd)) (+ yPlayer (* dt player.ySpd)) filter))
         (set player.x actualX)
         (set player.y actualY)
@@ -131,6 +135,12 @@
               )
             )
 
+            (when (and (= col.type "selectiveSlide") col.slide)
+              (set col.item.ySpd 0)
+              (set player.a-terra? true)
+              (set player.salto-doppio? true)
+            )
+
             ; quando colpiamo l'obiettivo
             (when (and (= col.item.name "Player") (= col.other.name "Objective"))
               (set state.concluso? true)
@@ -160,11 +170,11 @@
             ; quando tocchiamo il fondo
             (when (and (= col.item.name "Player") (= col.other.name "border-d"))
               ;resetta state.nLivello
-              (set-mode "mode-game" state.nLivello)
+              (diePlayer state)
             )
           )
         ) 
-      
+        
         (set player.verso (if (= player.xSpd 0) player.verso (< player.xSpd 0) :l :r))
         (set player.state (if player.a-terra?
           (if (< (math.abs player.xSpd) params.v-idle)
@@ -179,27 +189,28 @@
           "jumpd"
           )
         )
-      )
+      
 
-      ; controllo di prossimita walljump
-      (let [(items len) (state.world:project {} (- player.x 1) (- player.y 1) 
-                            (+ params.playerWidth 2) (+ params.playerHeight 2) 
-                            (- player.x 1) (- player.y 1) 
-                            #(and $2.properties $2.properties.collidable))]
-        (when (> len 0)
-          (each [_ col (ipairs items)]
-            (when (and (not= col.normal.x 0) (= col.normal.y 0))
-              (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
-      ))))
+        ; controllo di prossimita walljump
+        (let [(items len) (state.world:project {} (- player.x 1) (- player.y 1) 
+                              (+ params.playerWidth 2) (+ params.playerHeight 2) 
+                              (- player.x 1) (- player.y 1) 
+                              #(-?> $2 (. :layer) (. :properties) (. :passable) (not)))]
+          (when (> len 0)
+            (each [_ col (ipairs items)]
+              (when (and (not= col.normal.x 0) (= col.normal.y 0))
+                (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+        ))))
 
-      ;logica spada
-      (when (< 0 player.weapon)
-        (let [ox (if (= player.verso :r) 10 -16) 
-              oy 7]
-          (local (enemies len) (state.world:queryRect (+ player.x ox) (+ player.y oy) 16 6 #(= $1.type :enemy)))
-          (each [_ enemy (ipairs enemies)]
-            ; (print (.. "removing " enemy.properties.name))
-            (attack player enemy)
+        ;logica spada
+        (when (< 0 player.weapon)
+          (let [ox (if (= player.verso :r) 10 -16) 
+                oy 7]
+            (local (enemies len) (state.world:queryRect (+ player.x ox) (+ player.y oy) 16 6 #(= $1.type :enemy)))
+            (each [_ enemy (ipairs enemies)]
+              ; (print (.. "removing " enemy.properties.name))
+              (attack player enemy)
+            )
           )
         )
       )
@@ -238,7 +249,12 @@
     )
 
     (set state.tasti-premuti [])
-    (when (<= player.hp 0)
+    (when (and (not state.playerMorto?) (<= player.hp 0))
+      (diePlayer state)
+    )
+
+    (when (= true state.playerMorto?)
+      (set state.playerMorto? false)
       (set-mode "mode-game" state.nLivello)
     )
   )

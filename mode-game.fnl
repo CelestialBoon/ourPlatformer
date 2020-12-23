@@ -1,10 +1,7 @@
 (import-macros {: icollect} :macros)
 
-(var camera (require "camera"))
 (local activateInit (require :activateLevel))
 (local updateInit (require :updateLevel))
-
-(local params (require :params))
 
 (local state {
   :nLivello nil
@@ -15,12 +12,12 @@
   :tasti-premuti []
   :pausa? false
   :concluso? false
+  :playerMorto? false
   
   :gemma nil
   :punteggi {}
   :punteggio 0
   :nuovoHiScore? false
-  :playerDead? false
 
   :map nil
   :world nil
@@ -56,7 +53,7 @@
 )
 
 {
-  :activate (activateInit state params camera)
+  :activate (activateInit state params)
         
   :update (updateInit state params)
 

@@ -1,6 +1,6 @@
 (import-macros {: icollect} :macros)
 
-(fn activateInit [state params camera]
+(fn activateInit [state params]
   (fn nextFrame [nFrames tick]
     (% (math.floor (/ state.clock tick)) nFrames)
   )
@@ -18,6 +18,21 @@
         (tset state.punteggi level {:score (tonumber score) :gemma (= gemma "g")})
     )
 
+    (let [selectiveSlide (fn [world col x y w h goal-x goal-y filter]
+      (var (goal-x goal-y) (values (or goal-x x) (or goal-y y)))
+      (let [(tch move) (values col.touch col.move)
+            (x y) (if (and (or (not= move.x 0) (> move.y 0)) (>= tch.y y) (< col.normal.y 0))
+                      (do (set goal-y tch.y)
+                          (set col.slide {:x goal-x :y goal-y})
+                          (values tch.x tch.y))
+                      (values x y))
+      ]
+        (local (cols len) (world:project col.item x y w h goal-x goal-y filter))
+        (values goal-x goal-y cols len)
+      ))]
+      (state.world:addResponse :selectiveSlide selectiveSlide)
+    )
+	
     (set state.punteggio 0)
 
     ; (state.map:resize (lg.getWidth) (lg.getHeight))
@@ -190,51 +205,54 @@
 
     (set state.spriteLayer.draw (fn [self]
 
-      ; disegna giocatore
-      ; determina il frame
-      (var (playerRow playerColumn) (match self.player.state
-        :idle  (values 0 0)
-        :jumpu (values 1 0)
-        :jumpd (values 1 1)
-        :run   (values 2 (nextFrame 4 .15))
-      ))
 
-      (when (< 0 player.invinc)
-        (if (< 0.15 (% player.invinc 0.3))
-          (lg.setColor 1 0 0 1)
-          (lg.setColor 0.5 0 0 1))
-        (lg.setShader state.shader)
-      )
-      (lg.draw self.sprites.player (lg.newQuad
-        (* playerColumn 16)
-        (* playerRow 16)
-        16 16
-        (self.sprites.player:getDimensions))
-        ; posizione e rotazione
-        (math.floor self.player.x) (math.floor self.player.y) 0
-        ;scala
-        (if (= state.player.verso :l) -1 1) 1
-        ;offset
-        (if (= state.player.verso :r) (values 3 0) (values 13 0))
-      )
-      (when (< 0 player.invinc)
-        (lg.setShader)
-        (lg.setColor 1 1 1 1)
-      )
+      (when (= false state.playerMorto?)
+        ; disegna giocatore
+        ; determina il frame
+        (var (playerRow playerColumn) (match self.player.state
+          :idle  (values 0 0)
+          :jumpu (values 1 0)
+          :jumpd (values 1 1)
+          :run   (values 2 (nextFrame 4 .15))
+        ))
 
-      ;disegna spada
-      (when (> state.player.weapon 0)
-      (lg.draw self.sprites.player (lg.newQuad
-        16 0
-        16 16
-        (self.sprites.player:getDimensions))
-        ; posizione e rotazione
-        self.player.x self.player.y 0
-        ;scala
-        (if (= state.player.verso :l) -1 1) 1
-        ;offset
-        (if (= state.player.verso :r) (values -10 -2) (values 0 -2))
-      ))
+        (when (< 0 player.invinc)
+          (if (< 0.15 (% player.invinc 0.3))
+            (lg.setColor 1 0 0 1)
+            (lg.setColor 0.5 0 0 1))
+          (lg.setShader state.shader)
+        )
+        (lg.draw self.sprites.player (lg.newQuad
+          (* playerColumn 16)
+          (* playerRow 16)
+          16 16
+          (self.sprites.player:getDimensions))
+          ; posizione e rotazione
+          (math.floor self.player.x) (math.floor self.player.y) 0
+          ;scala
+          (if (= state.player.verso :l) -1 1) 1
+          ;offset
+          (if (= state.player.verso :r) (values 3 0) (values 13 0))
+        )
+        (when (< 0 player.invinc)
+          (lg.setShader)
+          (lg.setColor 1 1 1 1)
+        )
+
+        ;disegna spada
+        (when (> state.player.weapon 0)
+        (lg.draw self.sprites.player (lg.newQuad
+          16 0
+          16 16
+          (self.sprites.player:getDimensions))
+          ; posizione e rotazione
+          self.player.x self.player.y 0
+          ;scala
+          (if (= state.player.verso :l) -1 1) 1
+          ;offset
+          (if (= state.player.verso :r) (values -10 -2) (values 0 -2))
+        ))
+      )
 
       ;disegna nemici
       (each [_ enemy (ipairs state.spriteLayer.enemies)]

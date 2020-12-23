@@ -1,9 +1,5 @@
 PRIORITY
 
-animazione morte
-    attaccare l'animazione al bersaglio
-    il giocatore deve smettere di muoversi
-    eventuale reset livello alla fine
 
 --------------------------------------
 sfondo livello+
@@ -35,6 +31,7 @@ different update mechanics (passing different objects to :update ?)
 segreti nei livelli
     tile illusorie (sembrano solide ma non lo sono)
 armi?
+mappa mondo
 
 sfondo con https://love2d.org/wiki/Texture:setWrap
 tileset con https://love2d.org/wiki/TextureType
@@ -93,3 +90,9 @@ fisica indipendente dal framerate
 fps counter
 oggetto recupero hp
 grafica hp
+animazione morte
+    attaccare l'animazione al bersaglio
+    il giocatore deve smettere di muoversi
+    eventuale reset livello alla fine
+versioni con e senza muro delle stagioni
+ricollegare oggetti e animazioni (sia nel tilesheet che nel codice)

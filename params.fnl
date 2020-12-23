@@ -21,5 +21,5 @@
   :v-idle 2
   :speeds {:bat 30 :slime 30 :ghost 20 :spider 45}
   :hp {:player 3 :bat 2 :slime 2 :ghost 2 :spider 2}
-  :tiles {:heart {:tx 3 :ty 7} :gem {:tx 2 :ty 7} :uiheart {:tx 12 :ty 3} :explosion {:tx 0 :ty 9 :flen 5 :tick [.05 .10 .15 .20 .25]}}
+  :tiles {:heart {:tx 15 :ty 0} :gem {:tx 14 :ty 0} :uiheart {:tx 12 :ty 9} :explosion {:tx 12 :ty 10 :flen 5 :tick [.05 .10 .15 .20 .25] :scale 3}}
 }

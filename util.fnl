@@ -61,11 +61,29 @@
       (when fr
         (love.graphics.draw image 
           (love.graphics.newQuad (* 16 (+ fr tiledata.tx)) (* 16 tiledata.ty) 16 16 (image:getDimensions))
-           x y 0 scale)
+           x y 0 (or scale tiledata.scale))
         draw
       )
     )
   )
 )
 
-{: sleep : equals : merge : average : drawTileFromImage : drawAnim}
+(fn animPlayerDeath [state]
+    (let [image state.tilesetSprite
+          tiledata params.tiles.explosion
+          fnframe (animFrame state tiledata.flen tiledata.tick)
+          (x y) (camera:relPos state.player.x state.player.y)]
+      (table.insert state.drawfs (fn draw []
+        (let [fr (fnframe)]
+          (if fr (do
+              (set state.playerMorto? fr)
+              (love.graphics.draw image 
+                (love.graphics.newQuad (* 16 (+ fr tiledata.tx)) (* 16 tiledata.ty) 16 16 (image:getDimensions))
+                (* params.scale x) (* params.scale y) 0 tiledata.scale)
+              draw
+              )
+            (do
+              (set state.playerMorto? true)
+              nil) ) ) )) ) )
+
+{: sleep : equals : merge : average : drawTileFromImage : drawAnim : animPlayerDeath}
