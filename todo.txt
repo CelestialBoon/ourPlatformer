@@ -1,5 +1,19 @@
-PRIORITY
+INFO
 
+cose obbligatorie in un livello
+- Object Layer Spawn con player e objective (PLayer obbligato 16x16)
+- Tile layer Invisible con gemma
+- Custom map property: season
+
+gap massimi:
+orizzontale     7
+basso           3
+alto            5
+
+
+TODO PRIORITY
+
+continuare a produrre livelli e testarli per esplorare meccaniche
 
 --------------------------------------
 sfondo livello+
@@ -96,3 +110,7 @@ animazione morte
     eventuale reset livello alla fine
 versioni con e senza muro delle stagioni
 ricollegare oggetti e animazioni (sia nel tilesheet che nel codice)
+esplosione nemici
+cambiare localizzazione di player e objective da rettangoli in object layer a tile dentro layer Invisible
+creare un oggetto dummy nel tileset per forzare pathing di nemici (cross per il player e invisible)
+debug mode (hitboxes)

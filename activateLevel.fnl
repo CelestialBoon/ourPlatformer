@@ -7,15 +7,13 @@
 
   (fn activate [numLivello ...]
     (set state.nLivello (or numLivello 1))
+    (set state.concluso? false)
     (set state.map (sti (.. "assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
     (set state.world (bump.newWorld 32))
-    (set state.creatureCanvas (lg.newCanvas
-              (* state.map.width state.map.tilewidth)
-              (* state.map.height state.map.tileheight)))
 
     (each [line (io.lines params.pathPunteggi)]
         (local (level score gemma) (string.match line "(.*): (%d+)(g?)"))
-        (tset state.punteggi level {:score (tonumber score) :gemma (= gemma "g")})
+        (tset state.hiScore level {:score (tonumber score) :gemma (= gemma "g")})
     )
 
     (let [selectiveSlide (fn [world col x y w h goal-x goal-y filter]
@@ -50,17 +48,6 @@
     (set state.spriteLayer.enemies [])
     (set state.spriteLayer.items [])
 
-    ; inizializzazione spawns
-    (each [key value (pairs state.map.objects)]
-      (when (= value.name "Player")
-        (set state.player value)
-        ;(lua "break")
-      )
-      (when (= value.name "Objective")
-        (set state.obiet value)
-      )
-    )
-
     (macro addCollidable [typ prop sprite?]
       `(when (= tile.type ,typ)
         (local gid# (+ tileset.firstgid tile.id))
@@ -79,8 +66,7 @@
               (state.world:add c# c#.x c#.y c#.width c#.height)
               (table.insert state.map.bump_collidables c#)
               c#
-        )))
-    ) )
+    )))))
 
     (each [_ tileset (ipairs state.map.tilesets)]
       (each [i tile (ipairs tileset.tiles)]
@@ -110,7 +96,7 @@
                 :oy oy
                 :time 0
                 :frame 0
-                :verso :r
+                :verso tile.properties.verso
                 :hp (. params.hp enemyName)
                 :invinc 0
               })
@@ -118,38 +104,61 @@
               (table.insert state.map.bump_collidables e)
               (table.insert state.spriteLayer.enemies e)
         ) ) ))
-        (let [a (addCollidable :coing {
+        (let [ls (addCollidable :player {
+          :height params.playerHeight
+          :width params.playerWidth
+          :x params.playerX
+          :y params.playerY
+          :name :Player
+        } true true)]
+          (when ls (set state.player (. ls 1))))
+        (let [ls (addCollidable :coing {
           :height 6
           :width 6
           :x 5
           :y 9
           :name :coing
         } true)]
-          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins a)))
-        (let [a (addCollidable :coinp {
+          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls)))
+        (let [ls (addCollidable :coinp {
           :height 4
           :width 4
           :x 6
           :y 11
           :name :coinp
         } true)]
-          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins a)))
-        (let [a (addCollidable :gem {
+          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls)))
+        (let [ls (addCollidable :gem {
           :height 16
           :width 16
           :x 0
           :y 0
           :name :gem
         } true)]
-          (set state.spriteLayer.items (lume.concat state.spriteLayer.items a)))
-        (let [a (addCollidable :heart {
+          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+        (let [ls (addCollidable :heart {
           :height 16
           :width 16
           :x 0
           :y 0
           :name :heart
         } true)]
-          (set state.spriteLayer.items (lume.concat state.spriteLayer.items a)))
+          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+        (let [ls (addCollidable :objective {
+          :height 14
+          :width 14
+          :x 1
+          :y 1
+          :name :objective
+        } false true)]
+          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+        (addCollidable :block {
+          :height 16
+          :width 16
+          :x 0
+          :y 0
+          :name :block
+        } false)
         (addCollidable :bumper {
           :height 2
           :width state.map.tileheight
@@ -159,13 +168,11 @@
         } false)
       )
     )
-
+    
     ; forse sara necessario rendere il layer solo invisibile in futuro
     (state.map:removeLayer "Invisible")
 
-    (set state.player (state.world:add state.player state.player.x state.player.y params.playerWidth params.playerHeight))
-    (set state.obiet (state.world:add state.obiet state.obiet.x state.obiet.y state.obiet.width state.obiet.height))
-    (local player state.player)
+   (local player state.player)
 
     (var map-width (* state.map.width state.map.tilewidth))
     (var map-height (* state.map.height state.map.tileheight))
@@ -189,22 +196,18 @@
       :salto-a-muro? false
       :salto-doppio? true
     })
-
     (set state.gemma (lume.match state.spriteLayer.items #(= $1.name :gem)))
-    (set state.gemma.preso? (. (. state.punteggi (. params.listaLivelli state.nLivello)) :gemma))
+    (set state.gemma.preso? (-?> state.hiScore (. (. params.listaLivelli state.nLivello)) (. :gemma)))
 
     (set state.tilesetSprite (or state.tilesetSprite (lg.newImage "assets/SeasonsTilesheet.png")))
     (var mainbgSprite (lg.newImage (.. "assets/backgrounds/" state.map.properties.season ".png")))
-    (set state.spriteLayer.sprites.obiet (or state.spriteLayer.sprites.obiet (lg.newImage "assets/objective.png")))
     (set state.spriteLayer.sprites.player (or state.spriteLayer.sprites.player (lg.newImage "assets/sprites/protag.png")))
     (set state.spriteLayer.sprites.coins (or state.spriteLayer.sprites.coins (lg.newImage "assets/sprites/coin.png")))
     (set state.spriteLayer.sprites.enemies (or state.spriteLayer.sprites.enemies (lg.newImage "assets/sprites/enemies.png")))
 
     (set state.spriteLayer.player state.player)
-    (set state.spriteLayer.obiet state.obiet)
 
     (set state.spriteLayer.draw (fn [self]
-
 
       (when (= false state.playerMorto?)
         ; disegna giocatore
@@ -254,6 +257,7 @@
         ))
       )
 
+
       ;disegna nemici
       (each [_ enemy (ipairs state.spriteLayer.enemies)]
         (var (enemyRow enemyAnimLength enemyAnimSpeed ox oy) (match enemy.name
@@ -288,8 +292,6 @@
         )
       )
 
-      (lg.draw self.sprites.obiet self.obiet.x self.obiet.y 0 1 1 0 0)
-
       (each [_ item (ipairs state.spriteLayer.items)]
         (when (not item.preso?)
           (util.drawTileFromImage state.tilesetSprite (. params.tiles item.name) item.x item.y)
@@ -299,9 +301,9 @@
       ; disegna monete
       (local coinColumn (nextFrame 3 .10))
       (each [_ coin (ipairs state.spriteLayer.coins)]
-        (local coinRow (match coin.type
-                              :coing 0
-                              :coinp 2
+        (local (coinRow coinOx coinOy) (match coin.type
+                              :coing (values 0 5 9)
+                              :coinp (values 2 6 11)
         ))
         (lg.draw state.spriteLayer.sprites.coins (lg.newQuad
           (* coinColumn 16)
@@ -310,7 +312,7 @@
           (state.spriteLayer.sprites.coins:getDimensions))
           ; posizione e rotazione
           coin.x coin.y 0 1 1
-          5 9
+          coinOx coinOy
         )
       )
     ))
@@ -430,6 +432,6 @@
 
     ; fine dell'inizializzazione spawns
     ; (state.map:removeLayer "Spawn")
-    (set state.map.layers.Spawn.visible false)
+    ; (set state.map.layers.Spawn.visible false)
   )
 )

@@ -19,8 +19,8 @@
   (set self.y (or y self.y))
 )
 
-(fn camera.relPos [self wx wy]
-  (values (- wx self.x) (- wy self.y))
+(fn camera.screenPos [self wx wy]
+  (values (* params.scale (- wx self.x)) (* params.scale (- wy self.y)))
 )
 
 camera

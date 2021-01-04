@@ -13,21 +13,16 @@
   :pausa? false
   :concluso? false
   :playerMorto? false
+  :debugMode? false
   
   :gemma nil
-  :punteggi {}
+  :hiScore {}
   :punteggio 0
   :nuovoHiScore? false
 
   :map nil
   :world nil
   :player nil
-  :obiet nil
-  :theCoin {
-    :time 0
-    :frame 0
-  }
-  :creatureCanvas nil
 
   :shader (lg.newShader "assets/shader.fs")
   :drawfs []
@@ -72,6 +67,21 @@
     (for [i 1 state.player.hp]
       (util.drawTileFromImage state.tilesetSprite params.tiles.uiheart (+ 10 (* i 20)) 10 2)
     )
+
+    ;debug mode
+    (when state.debugMode?
+      (lg.setColor 1 0 0 .7)
+      (each [_ e (ipairs state.map.bump_collidables)]
+        (let [(x y) (camera:screenPos e.x e.y)]
+          (lg.rectangle "fill" x y (* params.scale e.width) (* params.scale e.height))))
+      (when (> state.player.weapon 0)
+        (let [player state.player
+              (x y) (camera:screenPos (+ player.x (if (= player.verso :r) 10 -16)) (+ player.y 7))]
+          (lg.rectangle "fill" x y (* params.scale 16) (* params.scale 6))
+      ))
+      (lg.setColor 1 1 1 1)
+    )
+    ;fine debug mode
     
     (love.graphics.print (.. "Punteggio: " state.punteggio) (- wWidth 100) 10)
     (love.graphics.print (.. "FPS: " (math.floor (/ 1 (util.average state.dts)))) (- wWidth 100) 30)

@@ -524,7 +524,7 @@ end
 function World:getRect(item)
   local rect = self.rects[item]
   if not rect then
-    error('Item ' .. tostring(item) .. ' must be added to the world before getting its rect. Use world:add(item, x,y,w,h) to add it first.')
+    error('Item ' .. view(item) .. ' must be added to the world before getting its rect. Use world:add(item, x,y,w,h) to add it first.')
   end
   return rect.x, rect.y, rect.w, rect.h
 end

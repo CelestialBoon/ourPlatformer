@@ -24,23 +24,27 @@
  <tile id="32" type="enemy">
   <properties>
    <property name="name" value="bat"/>
+   <property name="verso" value="r"/>
   </properties>
  </tile>
  <tile id="33" type="enemy">
   <properties>
    <property name="ground?" type="bool" value="true"/>
    <property name="name" value="slime"/>
+   <property name="verso" value="r"/>
   </properties>
  </tile>
  <tile id="34" type="enemy">
   <properties>
    <property name="name" value="ghost"/>
+   <property name="verso" value="r"/>
   </properties>
  </tile>
  <tile id="35" type="enemy">
   <properties>
    <property name="ground?" type="bool" value="true"/>
    <property name="name" value="spider"/>
+   <property name="verso" value="r"/>
   </properties>
  </tile>
  <tile id="36" type="terrain"/>
@@ -59,10 +63,32 @@
  <tile id="49" type="terrain"/>
  <tile id="50" type="terrain"/>
  <tile id="51" type="terrain"/>
- <tile id="52" type="terrain"/>
- <tile id="53" type="terrain"/>
- <tile id="54" type="terrain"/>
- <tile id="55" type="terrain"/>
+ <tile id="52" type="enemy">
+  <properties>
+   <property name="name" value="bat"/>
+   <property name="verso" value="l"/>
+  </properties>
+ </tile>
+ <tile id="53" type="enemy">
+  <properties>
+   <property name="ground?" type="bool" value="true"/>
+   <property name="name" value="slime"/>
+   <property name="verso" value="l"/>
+  </properties>
+ </tile>
+ <tile id="54" type="enemy">
+  <properties>
+   <property name="name" value="ghost"/>
+   <property name="verso" value="l"/>
+  </properties>
+ </tile>
+ <tile id="55" type="enemy">
+  <properties>
+   <property name="ground?" type="bool" value="true"/>
+   <property name="name" value="spider"/>
+   <property name="verso" value="l"/>
+  </properties>
+ </tile>
  <tile id="56" type="terrain"/>
  <tile id="57" type="terrain"/>
  <tile id="58" type="terrain"/>
@@ -127,6 +153,9 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="72" type="player"/>
+ <tile id="73" type="objective"/>
+ <tile id="74" type="block"/>
  <tile id="80" type="terrain" terrain=",0,,0">
   <properties>
    <property name="collidable" type="bool" value="true"/>

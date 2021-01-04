@@ -55,35 +55,36 @@
 )
 
 (fn drawAnim [state image tiledata x y scale]
-  (local frame (animFrame state tiledata.flen tiledata.tick))
+  (local framefn (animFrame state tiledata.flen tiledata.tick))
   (fn draw []
-    (let [fr (frame)]
+    (let [fr (framefn)
+          (x y) (camera:screenPos x y)]
       (when fr
         (love.graphics.draw image 
           (love.graphics.newQuad (* 16 (+ fr tiledata.tx)) (* 16 tiledata.ty) 16 16 (image:getDimensions))
            x y 0 (or scale tiledata.scale))
-        draw
-      )
-    )
-  )
+        draw ) ) ) )
+
+(fn animDeath [state entity]
+  (table.insert state.drawfs (drawAnim state state.tilesetSprite params.tiles.explosion (- entity.x 4) (- entity.y 4)))
 )
 
 (fn animPlayerDeath [state]
     (let [image state.tilesetSprite
           tiledata params.tiles.explosion
           fnframe (animFrame state tiledata.flen tiledata.tick)
-          (x y) (camera:relPos state.player.x state.player.y)]
+          (x y) (camera:screenPos state.player.x state.player.y)]
       (table.insert state.drawfs (fn draw []
         (let [fr (fnframe)]
           (if fr (do
               (set state.playerMorto? fr)
               (love.graphics.draw image 
                 (love.graphics.newQuad (* 16 (+ fr tiledata.tx)) (* 16 tiledata.ty) 16 16 (image:getDimensions))
-                (* params.scale x) (* params.scale y) 0 tiledata.scale)
+                x y 0 tiledata.scale)
               draw
               )
             (do
               (set state.playerMorto? true)
               nil) ) ) )) ) )
 
-{: sleep : equals : merge : average : drawTileFromImage : drawAnim : animPlayerDeath}
+{: sleep : equals : merge : average : drawTileFromImage : animDeath : animPlayerDeath}
