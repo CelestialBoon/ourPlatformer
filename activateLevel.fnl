@@ -1,4 +1,4 @@
-(import-macros {: icollect} :macros)
+(import-macros {: icollect2} "lib.macros")
 
 (fn activateInit [state params]
   (fn nextFrame [nFrames tick]
@@ -8,12 +8,16 @@
   (fn activate [numLivello ...]
     (set state.nLivello (or numLivello 1))
     (set state.concluso? false)
-    (set state.map (sti (.. "assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
+    (set state.map (sti (.. "lib/assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
     (set state.world (bump.newWorld 32))
 
-    (each [line (io.lines params.pathPunteggi)]
-        (local (level score gemma) (string.match line "(.*): (%d+)(g?)"))
-        (tset state.hiScore level {:score (tonumber score) :gemma (= gemma "g")})
+    (let [file (io.open params.pathPunteggi)]
+      (when (not= file nil)
+        (each [l (file:lines)]
+          (local (level score gemma) (string.match l "(.*): (%d+)(g?)"))
+          (tset state.hiScore level {:score (tonumber score) :gemma (= gemma "g")})
+        )
+      )
     )
 
     (let [selectiveSlide (fn [world col x y w h goal-x goal-y filter]
@@ -52,7 +56,7 @@
       `(when (= tile.type ,typ)
         (local gid# (+ tileset.firstgid tile.id))
         (when (. state.map.tileInstances gid#)
-          (icollect [_# instance# (ipairs (. state.map.tileInstances gid#))]
+          (icollect2 [_# instance# (ipairs (. state.map.tileInstances gid#))]
             (let [c# {
                 :height ,prop.height
                 :width ,prop.width
@@ -199,11 +203,11 @@
     (set state.gemma (lume.match state.spriteLayer.items #(= $1.name :gem)))
     (set state.gemma.preso? (-?> state.hiScore (. (. params.listaLivelli state.nLivello)) (. :gemma)))
 
-    (set state.tilesetSprite (or state.tilesetSprite (lg.newImage "assets/SeasonsTilesheet.png")))
-    (var mainbgSprite (lg.newImage (.. "assets/backgrounds/" state.map.properties.season ".png")))
-    (set state.spriteLayer.sprites.player (or state.spriteLayer.sprites.player (lg.newImage "assets/sprites/protag.png")))
-    (set state.spriteLayer.sprites.coins (or state.spriteLayer.sprites.coins (lg.newImage "assets/sprites/coin.png")))
-    (set state.spriteLayer.sprites.enemies (or state.spriteLayer.sprites.enemies (lg.newImage "assets/sprites/enemies.png")))
+    (set state.tilesetSprite (or state.tilesetSprite (lg.newImage "lib/assets/SeasonsTilesheet.png")))
+    (var mainbgSprite (lg.newImage (.. "lib/assets/backgrounds/" state.map.properties.season ".png")))
+    (set state.spriteLayer.sprites.player (or state.spriteLayer.sprites.player (lg.newImage "lib/assets/sprites/protag.png")))
+    (set state.spriteLayer.sprites.coins (or state.spriteLayer.sprites.coins (lg.newImage "lib/assets/sprites/coin.png")))
+    (set state.spriteLayer.sprites.enemies (or state.spriteLayer.sprites.enemies (lg.newImage "lib/assets/sprites/enemies.png")))
 
     (set state.spriteLayer.player state.player)
 

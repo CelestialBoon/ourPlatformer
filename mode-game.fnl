@@ -1,5 +1,3 @@
-(import-macros {: icollect} :macros)
-
 (local activateInit (require :activateLevel))
 (local updateInit (require :updateLevel))
 
@@ -24,7 +22,7 @@
   :world nil
   :player nil
 
-  :shader (lg.newShader "assets/shader.fs")
+  :shader (lg.newShader "lib/assets/shader.fs")
   :drawfs []
 })
 

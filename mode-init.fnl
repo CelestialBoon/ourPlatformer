@@ -1,4 +1,4 @@
-(var titleScreen (love.graphics.newImage "assets/titleScreen.png"))
+(var titleScreen (love.graphics.newImage "lib/assets/titleScreen.png"))
 
 {
     :update (fn update [dt set-mode]

@@ -153,9 +153,9 @@
             (when (and (= col.item.name "Player") (= col.other.name "objective"))
               (set state.concluso? true)
               (var nomeLivello (. params.listaLivelli state.nLivello))
-              (when (not (. state.hiScore nomeLivello)) (tset state.hiScore nomeLivello {}))
+              (when (not (. state.hiScore nomeLivello)) (tset state.hiScore nomeLivello {:score 0}))
               (var vecchioPunteggio (or (-?> state.hiScore (. nomeLivello) (. :score)) 0))
-              (when (< vecchioPunteggio state.punteggio)
+              (when (or (< vecchioPunteggio state.punteggio) (= vecchioPunteggio 0))
                 (tset (. state.hiScore nomeLivello) :score state.punteggio)
                 (set state.nuovoHiScore? true)
                 ; salva state.punteggio a file

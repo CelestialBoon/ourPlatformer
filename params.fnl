@@ -1,5 +1,5 @@
 {
-  :pathPunteggi "save/hiScore.txt"
+  :pathPunteggi "hiScores.sav"
   :listaLivelli [:level1 :level2]
   :scale 3
 

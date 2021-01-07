@@ -3,4 +3,6 @@
 /appimage/love-prepared/
 /appimage/AppRun-x86_64
 /appimage/appimagetool-x86_64.AppImage
-/save
+/appimage/squashfs-root
+hiScores.sav
+art/
