@@ -12,7 +12,7 @@
     (set state.playerMorto? 0)
     ;rimuove giocatore da collisioni
     (state.world:remove state.player)
-    (util.animPlayerDeath state)
+    (anim.animPlayerDeath state)
   )
 
   (fn turnAround [entity]
@@ -35,7 +35,7 @@
           (set target.hp (- target.hp 1))
           (if (<= target.hp 0)
             (do
-              (util.animDeath state target)
+              (anim.animDeath state target)
               (lume.remove state.spriteLayer.enemies target)
               (state.world:remove target))
             (do (set target.invinc params.enemyInvinc) true) ) ) ) ) )
@@ -61,19 +61,25 @@
         (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd params.accel)))
         ; gestione salti
         (if (lume.find state.tasti-premuti "z")
-          (if player.a-terra?
-            (set player.ySpd (- player.ySpd params.v-salto-terra))
+          (if 
+            (and player.a-terra? (love.keyboard.isDown "down"))
+              (do
+                (set yPlayer (+ yPlayer 0.1))
+                (print "discesa da piattaforma")
+              )
+            player.a-terra?
+              (set player.ySpd (- player.ySpd params.v-salto-terra))
             player.salto-a-muro?
-            (do
-              (set player.ySpd (- 0 params.v-salto-muro-v))
-              (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
-              ;(print "salto a muro verso " player.salto-a-muro?)
-            )
+              (do
+                (set player.ySpd (- 0 params.v-salto-muro-v))
+                (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
+                ;(print "salto a muro verso " player.salto-a-muro?)
+              )
             player.salto-doppio?
-            (do
-              (set player.ySpd (- 0 params.v-salto-doppio))
-              (set player.salto-doppio? false)
-            )
+              (do
+                (set player.ySpd (- 0 params.v-salto-doppio))
+                (set player.salto-doppio? false)
+              )
           )
         )
         ; a 0 la spada è disattivata
@@ -89,8 +95,10 @@
         ; params.gravita
         (set player.ySpd (+ player.ySpd (* dt params.gravita)))
 
-        ; logica collisioni giocatore
+        ;sposta direttamente il giocatore
+        (state.world:update player xPlayer yPlayer wPlayer hPlayer)
 
+        ; logica collisioni giocatore
         (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer (* dt player.xSpd)) (+ yPlayer (* dt player.ySpd)) filter))
         (set player.x actualX)
         (set player.y actualY)

@@ -11,6 +11,8 @@
     (set state.map (sti (.. "lib/assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
     (set state.world (bump.newWorld 32))
 
+    (camera:initialize state)
+
     (let [file (io.open params.pathPunteggi)]
       (when (not= file nil)
         (each [l (file:lines)]
@@ -43,7 +45,7 @@
 
     (var border-l {:name "border-l"})
     (var border-r {:name "border-r"})
-    (var border-u {:name "border-u"})
+    ; (var border-u {:name "border-u"})
     (var border-d {:name "border-d"})
 
     (set state.spriteLayer (state.map:addCustomLayer "Sprites"))
@@ -176,14 +178,14 @@
     ; forse sara necessario rendere il layer solo invisibile in futuro
     (state.map:removeLayer "Invisible")
 
-   (local player state.player)
+    (local player state.player)
 
     (var map-width (* state.map.width state.map.tilewidth))
     (var map-height (* state.map.height state.map.tileheight))
 
     (set border-l (state.world:add border-l (- 0 1) 0 1 map-height))
     (set border-r (state.world:add border-r map-width 0 1 map-height))
-    (set border-u (state.world:add border-u 0 (- 0 1) map-width 1))
+    ; (set border-u (state.world:add border-u 0 (- 0 1) map-width 1))
     (set border-d (state.world:add border-d 0 map-height map-width 1))
 
     (util.merge state.player {
@@ -298,7 +300,7 @@
 
       (each [_ item (ipairs state.spriteLayer.items)]
         (when (not item.preso?)
-          (util.drawTileFromImage state.tilesetSprite (. params.tiles item.name) item.x item.y)
+          (anim.drawTileFromImage state.tilesetSprite (. params.tiles item.name) item.x item.y)
         )
       )
       
@@ -325,9 +327,15 @@
 
     (set bgLayer.draw (fn [self]
       ; parallasse
-      (local (wWidth wHeight) (lg.getDimensions))
-      (var bgx (* camera.x 0.8))
-      (var bgy (- (* camera.y 0.8) 200))
+      (local (wWidth wHeight) (lg.getDimensions)) ;schermo
+      (local (iWidth iHeight) (mainbgSprite:getDimensions)) ;sfondo
+      (local (lWidth lHeight) (values (* state.map.width state.map.tilewidth) (* state.map.height state.map.tileheight))) ;livello
+
+      (local xRatio (math.min 0.2 (math.abs (/ iWidth (- lWidth wWidth)))))
+      (local yRatio (math.min 0.2 (math.abs (/ iHeight (- lHeight wHeight)))))
+      
+      (var bgx (* camera.x (- 1 xRatio)))
+      (var bgy (- (* camera.y (- 1 yRatio)) 200))
       (var bgscale 3)
 
       (match state.map.properties.season

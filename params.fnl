@@ -1,7 +1,12 @@
 {
   :pathPunteggi "hiScores.sav"
-  :listaLivelli [:level1 :level2]
+  :listaLivelli [:mario11 :level1 :level2]
   :scale 3
+
+  :camera {
+    :speedox 30
+    :xrange 16
+  }
 
   :playerWidth 10
   :playerHeight 16
@@ -22,6 +27,6 @@
   :gravita 400
   :v-idle 2
   :speeds {:bat 30 :slime 30 :ghost 20 :spider 45}
-  :hp {:player 3 :bat 2 :slime 2 :ghost 2 :spider 2}
+  :hp {:player 3 :bat 2 :slime 1 :ghost 2 :spider 2}
   :tiles {:objective {:tx 13 :ty 3} :heart {:tx 15 :ty 0} :gem {:tx 14 :ty 0} :uiheart {:tx 12 :ty 9} :explosion {:tx 12 :ty 10 :flen 5 :tick [.05 .10 .15 .20 .25] :scale 3}}
 }

@@ -10,10 +10,39 @@ orizzontale     7
 basso           3
 alto            5
 
+CAMERA
+
+- bottom lock
+    la telecamera tocca il fondo del livello
+    non si sblocca nei livelli chiusi a meno di passare in unlocked
+    esiste solo in certi livelli (come 1-2 o caverne, non esiste in 1-3)
+
+- top lock
+    la telecamera tocca la cima del livello
+    esiste solo nelle caverne
+
+- platform lock
+    al toccare di un appoggio terreno
+    se mario è più in alto della metà, aggiusta per portarlo in mezzo al contatto
+    se mario è più in basso della metà, non aggiusta al contatto
+
+- unlocked
+    p meter (corsa e salto)
+    liane
+    acqua e successivo
+    se scende sotto la metà dello schermo (e lo schermo non tocca il fondo)
+    dove sta mario verticalmente in caduta? a 1/3
+
+LIVELLI ORIZZONTALI E caverne
+hanno bottom lock (e top lock per le caverne)
+
+LIVELLI VERTICALI
+
 
 TODO PRIORITY
 
 continuare a produrre livelli e testarli per esplorare meccaniche
+modificare il comportamento telecamera in modo da attaccarsi al terreno
 
 --------------------------------------
 sfondo livello+
@@ -114,3 +143,6 @@ esplosione nemici
 cambiare localizzazione di player e objective da rettangoli in object layer a tile dentro layer Invisible
 creare un oggetto dummy nel tileset per forzare pathing di nemici (cross per il player e invisible)
 debug mode (hitboxes)
+piattaforma solitaria
+terreno individuale 
+

@@ -7,8 +7,9 @@ lume = require("lib.lume")
 bump = require("lib.bump")
 sti = require("lib.sti")
 params = require("params")
-camera = require("camera")
 util = require("util")
+camera = require("camera")
+anim = require("anim")
 lg = _G.love.graphics
 
 require("wrap")
