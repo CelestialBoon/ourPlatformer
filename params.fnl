@@ -1,11 +1,13 @@
 {
   :pathPunteggi "hiScores.sav"
-  :listaLivelli [:mario11 :level1 :level2]
+  :listaLivelli [:level2 :mario11]
   :scale 3
 
   :camera {
     :speedox 30
+    :speedoy 130
     :xrange 16
+    :yrange 16
   }
 
   :playerWidth 10
@@ -16,8 +18,8 @@
 
   :playerInvinc 1.5
   :enemyInvinc 1
-
-  :accel 1.8
+  
+  :accel 3
   :attrito 6
   :v-salto-terra 200
   :v-salto-muro-v 150
@@ -25,6 +27,7 @@
   :v-salto-doppio 150
   :v-bumper 300
   :gravita 400
+  ; :gravita 10
   :v-idle 2
   :speeds {:bat 30 :slime 30 :ghost 20 :spider 45}
   :hp {:player 3 :bat 2 :slime 1 :ghost 2 :spider 2}

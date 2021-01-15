@@ -34,7 +34,7 @@
   :update (updateInit state params)
 
   :draw (fn draw [message]
-    (camera:position state)
+    (camera:position)
     (state.map:draw (- 0 camera.x) (- 0 camera.y) params.scale)
     (when state.pausa?
       (love.graphics.print "Pausa" (/ wWidth 2) (/ wHeight 2))

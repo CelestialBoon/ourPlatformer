@@ -176,7 +176,7 @@
     )
     
     ; forse sara necessario rendere il layer solo invisibile in futuro
-    (state.map:removeLayer "Invisible")
+    (state.map:removeLayer "Entities")
 
     (local player state.player)
 

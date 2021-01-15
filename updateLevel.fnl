@@ -49,7 +49,7 @@
 
     (when (and (lume.find state.tasti-premuti "escape") (not state.concluso?)) (set state.pausa? (not state.pausa?)))
     (when (lume.find state.tasti-premuti "d") (set state.debugMode? (not state.debugMode?)))
-    ; (sleep 0.1)
+    ; (util.sleep 0.1)
     ; (when (lume.find state.tasti-premuti "c")
     ;   (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2))))
 
@@ -73,7 +73,7 @@
               (do
                 (set player.ySpd (- 0 params.v-salto-muro-v))
                 (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
-                ;(print "salto a muro verso " player.salto-a-muro?)
+                (camera:unlock)
               )
             player.salto-doppio?
               (do
@@ -116,6 +116,7 @@
             (when (= col.other.type :bumper)
               (set col.item.ySpd (- 0 params.v-bumper))
               (set player.salto-doppio? true)
+              (camera:unlock)
             )
             (when (and (= col.item.name :Player) (= col.other.type :coing))
               (set state.punteggio (+ state.punteggio 5))
