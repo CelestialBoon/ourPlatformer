@@ -57,18 +57,21 @@
       (when (not state.playerMorto?)
         (var (xPlayer yPlayer wPlayer hPlayer) (state.world:getRect player))
         ; logica velocita giocatore
-        (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd params.accel)))
-        (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd params.accel)))
+        (if (love.keyboard.isDown "right") (set player.xSpd (+ player.xSpd (* dt params.accel))))
+        (if (love.keyboard.isDown "left") (set player.xSpd (- player.xSpd (* dt params.accel))))
         ; gestione salti
         (if (lume.find state.tasti-premuti "z")
           (if 
+            ; discesa da piattaforma
             (and player.a-terra? (love.keyboard.isDown "down"))
               (do
                 (set yPlayer (+ yPlayer 0.1))
-                (print "discesa da piattaforma")
               )
             player.a-terra?
-              (set player.ySpd (- player.ySpd params.v-salto-terra))
+              (do
+                (set player.tSalto 0)
+                (set player.ySpd (- player.ySpd params.v-salto-terra))
+              )
             player.salto-a-muro?
               (do
                 (set player.ySpd (- 0 params.v-salto-muro-v))
@@ -77,11 +80,20 @@
               )
             player.salto-doppio?
               (do
-                (set player.ySpd (- 0 params.v-salto-doppio))
-                (set player.salto-doppio? false)
+                ; (set player.ySpd (- 0 params.v-salto-doppio))
+                ; (set player.salto-doppio? false)
               )
           )
         )
+
+        (if (and (love.keyboard.isDown "z") player.tSalto (< player.tSalto params.durataSalto))
+          (do
+            (set player.tSalto (+ player.tSalto dt))
+            (set player.ySpd (- player.ySpd (* dt params.a-salto-terra)))
+          )
+          (set player.tSalto false)
+        )
+
         ; a 0 la spada è disattivata
         (when (> player.weapon 0) (set player.weapon (+ player.weapon dt)))
         (when (> player.weapon params.weaponDuration) (set player.weapon 0))

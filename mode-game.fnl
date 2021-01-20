@@ -29,6 +29,8 @@
 (local (wWidth wHeight) (love.graphics.getDimensions))
 
 {
+  : state
+
   :activate (activateInit state params)
         
   :update (updateInit state params)

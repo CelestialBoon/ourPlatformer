@@ -6,13 +6,29 @@ cose obbligatorie in un livello
 
 gap massimi: (da rifare per nuova telecamera)
 orizzontale     7
-basso           3
-alto            5
+basso           3 (o 2 quando a un terzo schermo)
+alto            5 (o 7 quando a un terzo schermo)
+
+salti: 5-2 6-1
 
 TODO PRIORITY
 
-rivedere i gap
 continuare a produrre livelli e testarli per esplorare meccaniche
+
+ISPIRAZIONI
+
+kirby
+    traversare il livello per terra è più efficente e questo radica a terra il comportamento di kirby
+    gestire i nemici, toglierli di mezzo per volontà del giocatore di attraversare la via di terra
+    occasionali vere sfide di platforming (bottone+porta, autoscrolling)
+castlevania
+    procedere per un livello per affrontare un boss, (molti) nemici pongono un rischio se non affrontati, altri devono essere schivati
+megaman
+    solo salto, tight platforming, nemici da gestire per avanzare, molto simile a castlevania
+8 bit panda
+    platformer vecchio stile basato su accumulo punti (anche i nemici vengono affrontati per ottenere oggetti che danno punti)
+    1-1 è strutturato deliberatamente per creare l'associazione punti-buono
+
 
 --------------------------------------
 sfondo livello+
@@ -116,7 +132,7 @@ debug mode (hitboxes)
 piattaforma solitaria
 terreno individuale 
 modificare il comportamento telecamera in modo da attaccarsi al terreno
-
+short hop
 
 
 

@@ -46,18 +46,21 @@
   (values (* params.scale (- wx self.x)) (* params.scale (- wy self.y)))
 )
 
-(fn centerX [self]
-  (if (< state.player.x (- self.mapWidth self.halfWWidth))
-    (math.max 0 (-> state.player.x (- self.halfWWidth) (+ self.halfPWidth)))
-    (math.min (- state.player.x self.halfWWidth) (- self.mapWidth self.wWidth)))
+(fn centerX [self x]
+  (if (< x (- self.mapWidth self.halfWWidth self.halfPWidth))
+    (math.max 0 (-> x (- self.halfWWidth) (+ self.halfPWidth)))
+    (math.min (- x self.halfWWidth) (- self.mapWidth self.wWidth)))
 )
 
-(fn centerY [self]
-  (if (< state.player.y (- self.mapHeight self.halfWHeight))
-    (math.max 0 (-> state.player.y (- self.halfWHeight) (+ self.halfPHeight)))
-    (math.min (- state.player.y self.halfWHeight) (- self.mapHeight self.wHeight))
+(fn centerY [self y]
+  (if (< y (- self.mapHeight self.halfWHeight self.halfPHeight))
+    (math.max 0 (-> y (- self.halfWHeight) (+ self.halfPHeight)))
+    (math.min (- y self.halfWHeight) (- self.mapHeight self.wHeight))
   )
 )
+
+(fn centerPlayerX [self] (centerX self state.player.x))
+(fn centeryPlayer [self] (centerY self state.player.y))
 
 (fn camera.resetState [self]
   (set self.stateX :lock)
@@ -73,9 +76,9 @@
 )
 
 (fn camera.position [self]
-  (let [cenX (centerX self state)
-        cenY (centerY self state)
-        yHalfPlayer (+ state.player.y self.halfPHeight)
+  (let [cenX (centerPlayerX self state)
+        cenY (centeryPlayer self state)
+        yPlayer state.player.y
         newX (match self.stateX
           :lock (do
             (match state.player.verso
@@ -108,25 +111,26 @@
         newY (match self.stateY
           :platLock (do
             (set self.oy (util.avvicinaAZero self.oy (* state.dt self.speedoy)))
-            (if (< (+ self.y self.thirdWHeight) yHalfPlayer)
+            (if (< (+ self.y self.thirdWHeight) yPlayer)
                   (do
                     (set self.stateY :unlocked)
                     (set self.oy 0)
                   )
-                (and state.player.a-terra? (< self.yrange (math.abs (- yHalfPlayer self.yPlat))))
+                (and state.player.a-terra? (< self.yrange (math.abs (- yPlayer self.yPlat))))
                   (do
-                    (set self.yPlat yHalfPlayer)
+                    (set self.yPlat yPlayer)
                     (set self.oy (math.max 0 (- self.y cenY)))
                   )
             )
             (if (util.between self.halfWHeight (- self.yPlat self.y) self.thirdWHeight)
               self.y
-              (-> self.yPlat (+ self.oy) (- self.halfWHeight))
+              (centerY self (-> self.yPlat (+ self.oy)))
             )
           )
           :bottomLock (do
-            (when (and state.player.a-terra? (< yHalfPlayer (+ self.y self.halfWHeight)))
+            (when (and state.player.a-terra? (< yPlayer (+ self.y self.halfWHeight)))
               (set self.stateY :platLock)
+              (set self.yPlat yPlayer)
               (set self.oy (math.max 0 (- self.y cenY)))
             )
             self.y
@@ -134,11 +138,11 @@
           :unlocked (do
             (set self.oy (util.avvicinaAZero self.oy (* state.dt self.speedoy)))
             (let [unlY (+ self.oy 
-                          (if (util.between self.halfWHeight (- yHalfPlayer self.y) self.thirdWHeight)
+                          (if (util.between self.halfWHeight (- yPlayer self.y) self.thirdWHeight)
                             self.y
-                          (< (- yHalfPlayer self.y) self.halfWHeight)
+                          (< (- yPlayer self.y) self.halfWHeight)
                             cenY
-                            (math.max 0 (-> state.player.y (- self.thirdWHeight) (+ self.halfPHeight)))))
+                            (math.max 0 (- yPlayer self.thirdWHeight))))
                   bottomReached? (< self.mapHeight (+ unlY self.wHeight))]
             (if
               bottomReached?
@@ -149,13 +153,14 @@
               state.player.a-terra?
                 (do 
                   (set self.stateY :platLock)
-                  (set self.yPlat yHalfPlayer)
+                  (set self.yPlat yPlayer)
                   unlY
                 )
                 unlY
             )
           ))
     )]
+    ; (print self.stateY)
     (set self.versoPrec state.player.verso)
     (self:setPosition newX newY)
   )

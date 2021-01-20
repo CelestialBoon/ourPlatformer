@@ -5,10 +5,10 @@
 (local scale 1)
 
 ;; set the first mode
-(var mode (require "mode-init"))
+(global mode (require "mode-init"))
 
 (fn set-mode [mode-name ...]
-  (set mode (require mode-name))
+  (global mode (require mode-name))
   (when mode.activate
     (mode.activate ...)))
 

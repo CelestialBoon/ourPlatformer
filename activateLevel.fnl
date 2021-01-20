@@ -9,6 +9,12 @@
     (set state.nLivello (or numLivello 1))
     (set state.concluso? false)
     (set state.map (sti (.. "lib/assets/levels/" (. params.listaLivelli state.nLivello) ".lua") [:bump]))
+    (set state.map.properties.season (or state.map.properties.season :spring))
+    (let [prop (state.map:getLayerProperties "Platforms")] 
+      (when (not= nil prop)
+        (tset prop :passable true)
+      )
+    )
     (set state.world (bump.newWorld 32))
 
     (camera:initialize state)
@@ -335,7 +341,7 @@
       (local yRatio (math.min 0.2 (math.abs (/ iHeight (- lHeight wHeight)))))
       
       (var bgx (* camera.x (- 1 xRatio)))
-      (var bgy (- (* camera.y (- 1 yRatio)) 200))
+      (var bgy (- (* camera.y (- 1 yRatio)) 100))
       (var bgscale 3)
 
       (match state.map.properties.season
