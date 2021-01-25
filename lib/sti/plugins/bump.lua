@@ -37,9 +37,8 @@ return {
 										height     = object.height,
 										layer      = instance.layer,
 										properties = object.properties
-
 									}
-
+									
 									world:add(t, t.x, t.y, t.width, t.height)
 									table.insert(collidables, t)
 								end
@@ -54,6 +53,7 @@ return {
 								width      = map.tilewidth,
 								height     = map.tileheight,
 								layer      = instance.layer,
+								type			 = tile.type,
 								properties = tile.properties
 							}
 
@@ -99,6 +99,7 @@ return {
 								width      = tile.width,
 								height     = tile.height,
 								layer      = layer,
+								type			 = tile.type,
 								properties = tile.properties
 							}
 

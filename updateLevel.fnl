@@ -1,11 +1,16 @@
 (fn updateInit [state params]
-  (fn filter [item other]
+  (fn entityFilter [item other]
     (if
-      (and (= item.name :Player) (util.equals other.name [:objective :block :bumper :coing :coinp :gem :heart]))
+      (or (util.equals other.name [:objective :bumper :coing :coinp :gem :heart]) (and (= item.name :player) (= other.name :block)))
       "cross"
-      (and (= item.name :Player) (-?> other (. :layer) (. :properties) (. :passable)))
+      (or (-?> other (. :layer) (. :properties) (. :passable)) (-?> other (. :properties) (. :passable)))
       "selectiveSlide"
       "slide")
+  )
+  (fn platformFilter [item other]
+    (if (or (= other.name :platVert) (= other.name :platOriz) (= other.name :block) (-?> other (. :properties) (. :collidable)))
+      :bounce
+      :cross)
   )
 
   (fn diePlayer []
@@ -22,8 +27,7 @@
 
   (fn attack [attacker target]
     (when (<= target.invinc 0)
-      ; (print (.. attacker.name " danneggia " target.name))
-      (if (= target.name :Player)
+      (if (= target.name :player)
         (do
           (set target.hp (- target.hp 1))
           (when (> target.hp 0)
@@ -54,6 +58,47 @@
     ;   (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2))))
 
     (when (and (not state.pausa?) (not state.concluso?))
+      ;spostamento piattaforme
+      (each [_ plat (ipairs state.spriteLayer.platforms)]
+        (let [startX plat.x
+              startY plat.y
+              (goalX goalY) (match plat.verso
+                :u (values startX (- startY (* dt params.speeds.platV)))
+                :d (values startX (+ startY (* dt params.speeds.platV)))
+                :r (values (+ startX (* dt params.speeds.platH)) startY)
+                :l (values (- startX (* dt params.speeds.platH)) startY)
+                _ (error "piattaforma senza verso"))
+              (destX destY collisions collisionsNumber) (state.world:move plat goalX goalY platformFilter)
+              moveX (- destX startX)
+              moveY (- destY startY)
+              ;troviamo le entità sopra la piattaforma
+              (entities numEntities) (state.world:queryRect startX (- startY 10) plat.width 20 #(or (= $1.type :enemy) (= $1.type :player)))
+              ]
+              (set plat.x destX)
+              (set plat.y destY)
+          (when (and (< 0 collisionsNumber) (lume.any collisions #(if $1.bounce true false)))
+            (set plat.verso (match plat.verso
+              :u :d
+              :d :u
+              :r :l
+              :l :r
+            ))
+          )
+          ;update per traslarle
+          (when (< 0 numEntities)
+            (each [_ ent (ipairs entities)]
+              (let [newX (+ ent.x moveX) 
+                    newY (+ ent.y moveY)]
+                (state.world:update ent newX newY)
+                (set ent.x newX)
+                (set ent.y newY)
+              )
+            )
+          )
+        )
+      )
+
+      ;spostamento giocatore
       (when (not state.playerMorto?)
         (var (xPlayer yPlayer wPlayer hPlayer) (state.world:getRect player))
         ; logica velocita giocatore
@@ -111,7 +156,7 @@
         (state.world:update player xPlayer yPlayer wPlayer hPlayer)
 
         ; logica collisioni giocatore
-        (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer (* dt player.xSpd)) (+ yPlayer (* dt player.ySpd)) filter))
+        (var (actualX actualY collisions collisionsNumber) (state.world:move player (+ xPlayer (* dt player.xSpd)) (+ yPlayer (* dt player.ySpd)) entityFilter))
         (set player.x actualX)
         (set player.y actualY)
 
@@ -130,20 +175,23 @@
               (set player.salto-doppio? true)
               (camera:unlock)
             )
-            (when (and (= col.item.name :Player) (= col.other.type :coing))
+            (when (= col.other.type :coing)
               (set state.punteggio (+ state.punteggio 5))
               (lume.remove state.map.layers.Sprites.coins col.other)
               (state.world:remove col.other)
             )
-            (when (and (= col.item.name :Player) (= col.other.type :coinp))
+            (when (= col.other.type :coinp)
               (set state.punteggio (+ state.punteggio 1))
               (lume.remove state.map.layers.Sprites.coins col.other)
               (state.world:remove col.other)
             )
-            (when (and (= col.item.name :Player) (= col.other.type :enemy))
+            (when (util.equals col.other.type [:enemy :spikes])
               ;resetta state.nLivello
               (attack col.other player)
             )
+            ; (print col.other.type)
+            ; (print dt)
+            ; (pp col.other.type)
             ; collisione con muri (per ora tutti slide)
             (when (= col.type "slide")
               (if
@@ -171,7 +219,7 @@
             )
 
             ; quando colpiamo l'obiettivo
-            (when (and (= col.item.name "Player") (= col.other.name "objective"))
+            (when (and (= col.item.name "player") (= col.other.name "objective"))
               (set state.concluso? true)
               (var nomeLivello (. params.listaLivelli state.nLivello))
               (when (not (. state.hiScore nomeLivello)) (tset state.hiScore nomeLivello {:score 0}))
@@ -198,7 +246,7 @@
             )
 
             ; quando tocchiamo il fondo
-            (when (and (= col.item.name "Player") (= col.other.name "border-d"))
+            (when (and (= col.item.name "player") (= col.other.name "border-d"))
               ;resetta state.nLivello
               (diePlayer state)
             )
@@ -238,7 +286,6 @@
                 oy 7]
             (local (enemies len) (state.world:queryRect (+ player.x ox) (+ player.y oy) 16 6 #(= $1.type :enemy)))
             (each [_ enemy (ipairs enemies)]
-              ; (print (.. "removing " enemy.properties.name))
               (when (attack player enemy)
                 (set enemy.verso player.verso))
             )
@@ -250,18 +297,20 @@
       (each [_ enemy (ipairs state.spriteLayer.enemies)]
         (set enemy.x (if (= enemy.verso :r) (+ enemy.x (* dt (. params.speeds enemy.name))) (- enemy.x (* dt (. params.speeds enemy.name)))))
 
-        (var (actualX actualY collisions collisionsNumber) (state.world:move enemy enemy.x enemy.y filter))
+        (var (actualX actualY collisions collisionsNumber) (state.world:move enemy enemy.x enemy.y entityFilter))
         (set enemy.x actualX)
         (set enemy.y actualY)
 
         (local instabile? (and enemy.properties.ground? (do
-          (local (items len) (state.world:queryRect (+ enemy.x (/ enemy.width 2)) (+ enemy.y enemy.height 1) 1 1 #(-?> $1 (. :properties) (. :collidable))))
+          (local (items len) (state.world:queryRect (+ enemy.x (/ enemy.width 2)) (+ enemy.y enemy.height 1) 1 1 
+            #(or (-?> $1 (. :properties) (. :collidable)) (-?> $1 (. :properties) (. :passable)))))
           (= len 0)
         )))
 
-        (when (or instabile? (> collisionsNumber 0)) (turnAround enemy))
+        (when (or instabile? (and (> collisionsNumber 0) (lume.any collisions #(= $1.type :slide))))
+          (turnAround enemy))
 
-        (when (and (> collisionsNumber 0) (lume.any collisions #(= $1.other.name :Player)))
+        (when (and (> collisionsNumber 0) (lume.any collisions #(= $1.other.name :player)))
           (attack enemy player)
         )
         (set enemy.invinc (math.max 0 (- enemy.invinc dt)))

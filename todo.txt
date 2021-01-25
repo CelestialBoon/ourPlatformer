@@ -13,7 +13,15 @@ salti: 5-2 6-1
 
 TODO PRIORITY
 
+piattaforma verticale manda la camera in unlocked
+completare tileset in tutte le direzioni per spring (almeno)
+
 continuare a produrre livelli e testarli per esplorare meccaniche
+
+
+POSSIBILITÀ DI PARTI LIVELLO
+- muro da scalare con nemici volanti di passaggio
+- piattaforme isolate sopra il baratro
 
 ISPIRAZIONI
 

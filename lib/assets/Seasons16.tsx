@@ -130,7 +130,6 @@
  <tile id="63" type="player"/>
  <tile id="64" type="objective"/>
  <tile id="65" type="block"/>
- <tile id="66" type="terrain"/>
  <tile id="68" type="terrain" terrain=",0,,0">
   <properties>
    <property name="collidable" type="bool" value="true"/>
@@ -263,6 +262,11 @@
   </properties>
  </tile>
  <tile id="105" type="terrain" terrain=",1,1,1">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="106" type="spikes">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
@@ -446,9 +450,9 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="189">
+ <tile id="189" type="platVert">
   <properties>
-   <property name="collidable" type="bool" value="false"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="190" type="terrain">
@@ -464,6 +468,11 @@
  <tile id="196" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="204" type="platOriz">
+  <properties>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
 </tileset>

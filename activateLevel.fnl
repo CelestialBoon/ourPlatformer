@@ -55,10 +55,13 @@
     (var border-d {:name "border-d"})
 
     (set state.spriteLayer (state.map:addCustomLayer "Sprites"))
-    (set state.spriteLayer.sprites {})
-    (set state.spriteLayer.coins [])
-    (set state.spriteLayer.enemies [])
-    (set state.spriteLayer.items [])
+    (util.merge state.spriteLayer {
+      :sprites {} 
+      :coins []
+      :enemies []
+      :items []
+      :platforms []
+    })
 
     (macro addCollidable [typ prop sprite?]
       `(when (= tile.type ,typ)
@@ -121,8 +124,8 @@
           :width params.playerWidth
           :x params.playerX
           :y params.playerY
-          :name :Player
-        } true true)]
+          :name :player
+        } true)]
           (when ls (set state.player (. ls 1))))
         (let [ls (addCollidable :coing {
           :height 6
@@ -131,7 +134,7 @@
           :y 9
           :name :coing
         } true)]
-          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls)))
+          (when ls (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls))))
         (let [ls (addCollidable :coinp {
           :height 4
           :width 4
@@ -139,7 +142,7 @@
           :y 11
           :name :coinp
         } true)]
-          (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls)))
+          (when ls (set state.spriteLayer.coins (lume.concat state.spriteLayer.coins ls))))
         (let [ls (addCollidable :gem {
           :height 16
           :width 16
@@ -147,7 +150,7 @@
           :y 0
           :name :gem
         } true)]
-          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+          (when ls (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls))))
         (let [ls (addCollidable :heart {
           :height 16
           :width 16
@@ -155,15 +158,15 @@
           :y 0
           :name :heart
         } true)]
-          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+          (when ls (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls))))
         (let [ls (addCollidable :objective {
           :height 14
           :width 14
           :x 1
           :y 1
           :name :objective
-        } false true)]
-          (set state.spriteLayer.items (lume.concat state.spriteLayer.items ls)))
+        } false)]
+          (when ls (table.insert state.spriteLayer.items (. ls 1)) ))
         (addCollidable :block {
           :height 16
           :width 16
@@ -178,6 +181,34 @@
           :y 14
           :name :bumper
         } false)
+        (let [ls (addCollidable :platVert {
+          :height 16
+          :width 16
+          :x 0
+          :y 0
+          :name :platVert
+        } true)]
+          (when ls (each [_ plat (ipairs ls)]
+              (tset plat :verso :u)
+              (table.insert state.spriteLayer.platforms plat)
+            )
+          )
+        )
+        (let [ls (addCollidable :platOriz {
+          :height 16
+          :width 48
+          :x 0
+          :y 0
+          :name :platOriz
+        } true)]
+          (when ls
+            (when ls (each [_ plat (ipairs ls)]
+                (tset plat :verso :r)
+                (table.insert state.spriteLayer.platforms plat)
+              )
+            )
+          )
+        )
       )
     )
     
@@ -193,6 +224,13 @@
     (set border-r (state.world:add border-r map-width 0 1 map-height))
     ; (set border-u (state.world:add border-u 0 (- 0 1) map-width 1))
     (set border-d (state.world:add border-d 0 map-height map-width 1))
+
+    (let [collidable {:properties {:collidable true}}]
+      (util.merge border-l collidable)
+      (util.merge border-r collidable)
+      ; (util.merge border-u collidable)
+      (util.merge border-d collidable)
+    )
 
     (util.merge state.player {
       :xSpd 0
@@ -220,56 +258,6 @@
     (set state.spriteLayer.player state.player)
 
     (set state.spriteLayer.draw (fn [self]
-
-      (when (= false state.playerMorto?)
-        ; disegna giocatore
-        ; determina il frame
-        (var (playerRow playerColumn) (match self.player.state
-          :idle  (values 0 0)
-          :jumpu (values 1 0)
-          :jumpd (values 1 1)
-          :run   (values 2 (nextFrame 4 .15))
-        ))
-
-        (when (< 0 player.invinc)
-          (if (< 0.15 (% player.invinc 0.3))
-            (lg.setColor 1 0 0 1)
-            (lg.setColor 0.5 0 0 1))
-          (lg.setShader state.shader)
-        )
-        (lg.draw self.sprites.player (lg.newQuad
-          (* playerColumn 16)
-          (* playerRow 16)
-          16 16
-          (self.sprites.player:getDimensions))
-          ; posizione e rotazione
-          (math.floor self.player.x) (math.floor self.player.y) 0
-          ;scala
-          (if (= state.player.verso :l) -1 1) 1
-          ;offset
-          (if (= state.player.verso :r) (values 3 0) (values 13 0))
-        )
-        (when (< 0 player.invinc)
-          (lg.setShader)
-          (lg.setColor 1 1 1 1)
-        )
-
-        ;disegna spada
-        (when (> state.player.weapon 0)
-        (lg.draw self.sprites.player (lg.newQuad
-          16 0
-          16 16
-          (self.sprites.player:getDimensions))
-          ; posizione e rotazione
-          self.player.x self.player.y 0
-          ;scala
-          (if (= state.player.verso :l) -1 1) 1
-          ;offset
-          (if (= state.player.verso :r) (values -10 -2) (values 0 -2))
-        ))
-      )
-
-
       ;disegna nemici
       (each [_ enemy (ipairs state.spriteLayer.enemies)]
         (var (enemyRow enemyAnimLength enemyAnimSpeed ox oy) (match enemy.name
@@ -326,6 +314,65 @@
           coin.x coin.y 0 1 1
           coinOx coinOy
         )
+      )
+
+      ;disegna piattaforme semoventi
+      (each [_ plat (ipairs state.spriteLayer.platforms)]
+        (let [(x y w h) (match plat.name
+                :platOriz (values 0 12 48 16)
+                :platVert (values 2 11 16 16)
+                )
+              quad (lg.newQuad (* 16 x) (* 16 y) w h (state.tilesetSprite:getDimensions))]
+          (lg.draw state.tilesetSprite quad plat.x plat.y)
+        )
+      )
+      
+      (when (= false state.playerMorto?)
+      ; disegna giocatore
+        ; determina il frame
+        (var (playerRow playerColumn) (match self.player.state
+          :idle  (values 0 0)
+          :jumpu (values 1 0)
+          :jumpd (values 1 1)
+          :run   (values 2 (nextFrame 4 .15))
+        ))
+
+        (when (< 0 player.invinc)
+          (if (< 0.15 (% player.invinc 0.3))
+            (lg.setColor 1 0 0 1)
+            (lg.setColor 0.5 0 0 1))
+          (lg.setShader state.shader)
+        )
+        (lg.draw self.sprites.player (lg.newQuad
+          (* playerColumn 16)
+          (* playerRow 16)
+          16 16
+          (self.sprites.player:getDimensions))
+          ; posizione e rotazione
+          (math.floor self.player.x) (math.floor self.player.y) 0
+          ;scala
+          (if (= state.player.verso :l) -1 1) 1
+          ;offset
+          (if (= state.player.verso :r) (values 3 0) (values 13 0))
+        )
+        (when (< 0 player.invinc)
+          (lg.setShader)
+          (lg.setColor 1 1 1 1)
+        )
+
+        ;disegna spada
+        (when (> state.player.weapon 0)
+        (lg.draw self.sprites.player (lg.newQuad
+          16 0
+          16 16
+          (self.sprites.player:getDimensions))
+          ; posizione e rotazione
+          self.player.x self.player.y 0
+          ;scala
+          (if (= state.player.verso :l) -1 1) 1
+          ;offset
+          (if (= state.player.verso :r) (values -10 -2) (values 0 -2))
+        ))
       )
     ))
 
