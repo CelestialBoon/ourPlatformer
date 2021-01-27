@@ -13,6 +13,16 @@
       :cross)
   )
 
+  (fn givePoints [entity pts]
+    (set state.score (+ state.score pts))
+    (anim.drawFloatingText state (.. pts) entity.x entity.y 1.4)
+  )
+
+  (fn giveLife [entity qty]
+    (set state.player.hp (+ state.player.hp 1))
+    (anim.drawFloatingText state (.. "+" qty " HP") entity.x entity.y 1.6)
+  )
+
   (fn diePlayer []
     (set state.playerMorto? 0)
     ;rimuove giocatore da collisioni
@@ -40,8 +50,9 @@
           (if (<= target.hp 0)
             (do
               (anim.animDeath state target)
+              (givePoints target 5))
               (lume.remove state.spriteLayer.enemies target)
-              (state.world:remove target))
+              (state.world:remove target)
             (do (set target.invinc params.enemyInvinc) true) ) ) ) ) )
 
   (fn update [dt set-mode]
@@ -92,6 +103,9 @@
                 (state.world:update ent newX newY)
                 (set ent.x newX)
                 (set ent.y newY)
+              )
+              (when (and (util.equals plat.verso [:u :d]) (= ent.name :player))
+                (set camera.stateY :unlocked)
               )
             )
           )
@@ -176,12 +190,12 @@
               (camera:unlock)
             )
             (when (= col.other.type :coing)
-              (set state.punteggio (+ state.punteggio 5))
+              (givePoints col.other 5)
               (lume.remove state.map.layers.Sprites.coins col.other)
               (state.world:remove col.other)
             )
             (when (= col.other.type :coinp)
-              (set state.punteggio (+ state.punteggio 1))
+              (givePoints col.other 1)
               (lume.remove state.map.layers.Sprites.coins col.other)
               (state.world:remove col.other)
             )
@@ -224,10 +238,10 @@
               (var nomeLivello (. params.listaLivelli state.nLivello))
               (when (not (. state.hiScore nomeLivello)) (tset state.hiScore nomeLivello {:score 0}))
               (var vecchioPunteggio (or (-?> state.hiScore (. nomeLivello) (. :score)) 0))
-              (when (or (< vecchioPunteggio state.punteggio) (= vecchioPunteggio 0))
-                (tset (. state.hiScore nomeLivello) :score state.punteggio)
+              (when (or (< vecchioPunteggio state.score) (= vecchioPunteggio 0))
+                (tset (. state.hiScore nomeLivello) :score state.score)
                 (set state.nuovoHiScore? true)
-                ; salva state.punteggio a file
+                ; salva state.score a file
                 (with-open [f (io.open params.pathPunteggi :w)]
                   (each [nomeLivello v (pairs state.hiScore)]
                       (f:write (.. nomeLivello ": " v.score (if v.gemma "g" "") "\n"))
@@ -236,12 +250,12 @@
               )
             )
             (when (and (= col.other.type :gem) (not col.other.preso?))
-              (set state.punteggio (+ state.punteggio 50))
+              (givePoints col.other 50)
               (set col.other.preso? true)
             )
 
             (when (and (= col.other.type :heart) (not col.other.preso?))
-              (set player.hp (+ player.hp 1))
+              (giveLife col.other 1)
               (set col.other.preso? true)
             )
 

@@ -13,8 +13,7 @@ salti: 5-2 6-1
 
 TODO PRIORITY
 
-piattaforma verticale manda la camera in unlocked
-completare tileset in tutte le direzioni per spring (almeno)
+visualizzare acquisizione punti
 
 continuare a produrre livelli e testarli per esplorare meccaniche
 
@@ -94,7 +93,7 @@ personaggio non quadrato
 sfondo
     parallasse
 piattaforme con molle
-punteggio
+score
 moneta
     prenderla dalla mappa (come bumper) e inserirla nel mondo
     rimuovere moneta da layer base
@@ -141,6 +140,8 @@ piattaforma solitaria
 terreno individuale 
 modificare il comportamento telecamera in modo da attaccarsi al terreno
 short hop
+piattaforma verticale manda la camera in unlocked
+completare tileset in tutte le direzioni
 
 
 

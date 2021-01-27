@@ -15,7 +15,7 @@
   
   :gemma nil
   :hiScore {}
-  :punteggio 0
+  :score 0
   :nuovoHiScore? false
 
   :map nil
@@ -44,7 +44,7 @@
     (when state.concluso?
       (love.graphics.print "Congratulations!" (/ wWidth 2) (/ wHeight 2))
       (when state.nuovoHiScore? 
-        (love.graphics.print (.. "Nuovo high score: " state.punteggio "!") (/ wWidth 2) (+ (/ wHeight 2) 10))
+        (love.graphics.print (.. "Nuovo high score: " state.score "!") (/ wWidth 2) (+ (/ wHeight 2) 10))
       )
     )
     (for [i 1 state.player.hp]
@@ -66,7 +66,7 @@
     )
     ;fine debug mode
     
-    (love.graphics.print (.. "Punteggio: " state.punteggio) (- wWidth 100) 10)
+    (love.graphics.print (.. "Punteggio: " state.score) (- wWidth 100) 10)
     (love.graphics.print (.. "FPS: " (math.floor (/ 1 (util.average state.dts)))) (- wWidth 100) 30)
     (set state.drawfs (icollect [_ f (ipairs state.drawfs)] (f)))
   )

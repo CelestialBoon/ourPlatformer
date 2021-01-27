@@ -255,8 +255,12 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="103" type="bumper"/>
- <tile id="104" type="terrain" terrain="0,,0,0">
+ <tile id="103" type="terrain" terrain="0,,0,0">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="104" type="spikes">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
@@ -266,12 +270,12 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="106" type="spikes">
+ <tile id="106" type="terrain" terrain="1,,1,1">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="107" type="terrain" terrain="1,,1,1">
+ <tile id="107" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
@@ -281,9 +285,14 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="110" type="terrain" terrain="2,,2,2">
+ <tile id="109" type="terrain" terrain="2,,2,2">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="110">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
   </properties>
  </tile>
  <tile id="111" type="terrain" terrain=",3,3,3">
@@ -291,186 +300,262 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="113" type="terrain" terrain="3,,3,3">
+ <tile id="112" type="terrain" terrain="3,,3,3">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="119" type="terrain" terrain=",,,4">
+ <tile id="113">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
+  </properties>
+ </tile>
+ <tile id="119" type="terrain" terrain="0,0,,0">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="120" type="terrain" terrain=",,4,4">
+ <tile id="120" type="terrain" terrain="0,0,0,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="121" type="terrain" terrain=",,4,">
+ <tile id="121" type="bumper">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
+  </properties>
+ </tile>
+ <tile id="122" type="terrain" terrain="1,1,,1">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="122" type="terrain" terrain=",,,5">
+ <tile id="123" type="terrain" terrain="1,1,1,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="123" type="terrain" terrain=",,5,5">
+ <tile id="124">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
+  </properties>
+ </tile>
+ <tile id="125" type="terrain" terrain="2,2,,2">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="124" type="terrain" terrain=",,5,">
+ <tile id="126" type="terrain" terrain="2,2,2,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="125" type="terrain" terrain=",,,6">
+ <tile id="127">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
+  </properties>
+ </tile>
+ <tile id="128" type="terrain" terrain="3,3,,3">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="126" type="terrain" terrain=",,6,6">
+ <tile id="129" type="terrain" terrain="3,3,3,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="127" type="terrain" terrain=",,6,">
+ <tile id="130">
+  <properties>
+   <property name="collidable" type="bool" value="false"/>
+  </properties>
+ </tile>
+ <tile id="136" type="terrain" terrain=",,,4">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="128" type="terrain" terrain=",,,7">
+ <tile id="137" type="terrain" terrain=",,4,4">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="129" type="terrain" terrain=",,7,7">
+ <tile id="138" type="terrain" terrain=",,4,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="130" type="terrain" terrain=",,7,">
+ <tile id="139" type="terrain" terrain=",,,5">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="136" type="terrain" terrain=",4,,4"/>
- <tile id="137" type="terrain" terrain="4,4,4,4"/>
- <tile id="138" type="terrain" terrain="4,,4,"/>
- <tile id="139" type="terrain" terrain=",5,,5"/>
- <tile id="140" type="terrain" terrain="5,5,5,5"/>
- <tile id="141" type="terrain" terrain="5,,5,"/>
- <tile id="142" type="terrain" terrain=",6,,6"/>
- <tile id="143" type="terrain" terrain="6,6,6,6"/>
- <tile id="144" type="terrain" terrain="6,,6,"/>
- <tile id="145" type="terrain" terrain=",7,,7"/>
- <tile id="146" type="terrain" terrain="7,7,7,7"/>
- <tile id="147" type="terrain" terrain="7,,7,"/>
- <tile id="153" type="terrain" terrain=",4,,"/>
- <tile id="154" type="terrain" terrain="4,4,,"/>
- <tile id="155" type="terrain" terrain="4,,,"/>
- <tile id="156" type="terrain" terrain=",5,,"/>
- <tile id="157" type="terrain" terrain="5,5,,"/>
- <tile id="158" type="terrain" terrain="5,,,"/>
- <tile id="159" type="terrain" terrain=",6,,"/>
- <tile id="160" type="terrain" terrain="6,6,,"/>
- <tile id="161" type="terrain" terrain="6,,,"/>
- <tile id="162" type="terrain" terrain=",7,,"/>
- <tile id="163" type="terrain" terrain="7,7,,"/>
- <tile id="164" type="terrain" terrain="7,,,"/>
- <tile id="170" type="terrain">
+ <tile id="140" type="terrain" terrain=",,5,5">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="171" type="terrain">
+ <tile id="141" type="terrain" terrain=",,5,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="172" type="terrain">
+ <tile id="142" type="terrain" terrain=",,,6">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="173" type="terrain">
+ <tile id="143" type="terrain" terrain=",,6,6">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="174" type="terrain">
+ <tile id="144" type="terrain" terrain=",,6,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="175" type="terrain">
+ <tile id="145" type="terrain" terrain=",,,7">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="176" type="terrain">
+ <tile id="146" type="terrain" terrain=",,7,7">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="177" type="terrain">
+ <tile id="147" type="terrain" terrain=",,7,">
   <properties>
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="178" type="terrain">
-  <properties>
-   <property name="collidable" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="179" type="terrain">
-  <properties>
-   <property name="collidable" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="180" type="terrain">
-  <properties>
-   <property name="collidable" type="bool" value="true"/>
-  </properties>
- </tile>
- <tile id="181" type="terrain">
-  <properties>
-   <property name="collidable" type="bool" value="true"/>
-  </properties>
- </tile>
+ <tile id="153" type="terrain" terrain=",4,,4"/>
+ <tile id="154" type="terrain" terrain="4,4,4,4"/>
+ <tile id="155" type="terrain" terrain="4,,4,"/>
+ <tile id="156" type="terrain" terrain=",5,,5"/>
+ <tile id="157" type="terrain" terrain="5,5,5,5"/>
+ <tile id="158" type="terrain" terrain="5,,5,"/>
+ <tile id="159" type="terrain" terrain=",6,,6"/>
+ <tile id="160" type="terrain" terrain="6,6,6,6"/>
+ <tile id="161" type="terrain" terrain="6,,6,"/>
+ <tile id="162" type="terrain" terrain=",7,,7"/>
+ <tile id="163" type="terrain" terrain="7,7,7,7"/>
+ <tile id="164" type="terrain" terrain="7,,7,"/>
+ <tile id="170" type="terrain" terrain=",4,,"/>
+ <tile id="171" type="terrain" terrain="4,4,,"/>
+ <tile id="172" type="terrain" terrain="4,,,"/>
+ <tile id="173" type="terrain" terrain=",5,,"/>
+ <tile id="174" type="terrain" terrain="5,5,,"/>
+ <tile id="175" type="terrain" terrain="5,,,"/>
+ <tile id="176" type="terrain" terrain=",6,,"/>
+ <tile id="177" type="terrain" terrain="6,6,,"/>
+ <tile id="178" type="terrain" terrain="6,,,"/>
+ <tile id="179" type="terrain" terrain=",7,,"/>
+ <tile id="180" type="terrain" terrain="7,7,,"/>
+ <tile id="181" type="terrain" terrain="7,,,"/>
  <tile id="187" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="188" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="189" type="platVert">
+ <tile id="189" type="terrain">
   <properties>
+   <property name="collidable" type="bool" value="true"/>
    <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="190" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="191" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="192" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="193" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="194" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="195" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="196" type="terrain">
   <properties>
    <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="204" type="platOriz">
+ <tile id="197" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="198" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="204" type="terrain">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="206" type="platVert">
+  <properties>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="207">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="210">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="213">
+  <properties>
+   <property name="collidable" type="bool" value="true"/>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
+ <tile id="221" type="platOriz">
   <properties>
    <property name="passable" type="bool" value="true"/>
   </properties>

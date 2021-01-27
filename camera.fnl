@@ -49,18 +49,18 @@
 (fn centerX [self x]
   (if (< x (- self.mapWidth self.halfWWidth self.halfPWidth))
     (math.max 0 (-> x (- self.halfWWidth) (+ self.halfPWidth)))
-    (math.min (- x self.halfWWidth) (- self.mapWidth self.wWidth)))
+    (math.min (-> x (- self.halfWWidth) (+ self.halfPWidth)) (- self.mapWidth self.wWidth)))
 )
 
 (fn centerY [self y]
   (if (< y (- self.mapHeight self.halfWHeight self.halfPHeight))
     (math.max 0 (-> y (- self.halfWHeight) (+ self.halfPHeight)))
-    (math.min (- y self.halfWHeight) (- self.mapHeight self.wHeight))
+    (math.min (-> y (- self.halfWHeight) (+ self.halfPHeight)) (- self.mapHeight self.wHeight))
   )
 )
 
 (fn centerPlayerX [self] (centerX self state.player.x))
-(fn centeryPlayer [self] (centerY self state.player.y))
+(fn centerPlayerY [self] (centerY self state.player.y))
 
 (fn camera.resetState [self]
   (set self.stateX :lock)
@@ -72,12 +72,12 @@
 
 (fn camera.unlock [self]
   (set self.stateY :unlocked)
-  (set self.oy (math.max 0 (- self.y (centerY self state))))
+  (set self.oy (math.max 0 (- self.y (centerPlayerY self))))
 )
 
 (fn camera.position [self]
-  (let [cenX (centerPlayerX self state)
-        cenY (centeryPlayer self state)
+  (let [cenX (centerPlayerX self)
+        cenY (centerPlayerY self)
         yPlayer state.player.y
         newX (match self.stateX
           :lock (do

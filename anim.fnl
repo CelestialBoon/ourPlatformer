@@ -1,3 +1,21 @@
+(fn drawFloatingText [state text x y scale]
+  (let [spd params.floatTextSpeed
+        duration params.floatTextDuration
+        scale (or scale 1)
+        ]
+    (var (x y) (camera:screenPos x y))
+    (var time 0)
+    (table.insert state.drawfs (fn draw []
+      (when (< time duration)
+        (love.graphics.print text x y 0 scale scale)
+        (set y (- y (* state.dt spd)))
+        (set time (+ time state.dt))
+        draw
+      )
+    ))
+  )
+)
+
 (fn drawTileFromImage [image {: tx : ty} x y scale]
   (love.graphics.draw image (love.graphics.newQuad
     (* tx 16) (* ty 16)
@@ -6,9 +24,7 @@
     ; posizione e rotazione
     x y 0
     ;scala
-    scale
-  )
-)
+    scale ) )
 
 (fn animFrame [state flen tick]
   (var start state.clock)
@@ -22,11 +38,7 @@
     (fn []
       (if (> (- state.clock start) (. tick (+ i 1)))
         (do (set i (+ 1 i)) (set start (+ start (. tick i))) (when (< i flen) i))
-        i
-      )
-    )
-  )
-)
+        i ) ) ) )
 
 (fn drawAnim [state image tiledata x y scale]
   (local framefn (animFrame state tiledata.flen tiledata.tick))
@@ -61,4 +73,4 @@
               (set state.playerMorto? true)
               nil) ) ) )) ) )
 
-{: drawTileFromImage : animDeath : animPlayerDeath}
+{: drawFloatingText : drawTileFromImage : animDeath : animPlayerDeath}

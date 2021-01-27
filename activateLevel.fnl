@@ -43,7 +43,7 @@
       (state.world:addResponse :selectiveSlide selectiveSlide)
     )
 	
-    (set state.punteggio 0)
+    (set state.score 0)
 
     ; (state.map:resize (lg.getWidth) (lg.getHeight))
 
@@ -319,8 +319,8 @@
       ;disegna piattaforme semoventi
       (each [_ plat (ipairs state.spriteLayer.platforms)]
         (let [(x y w h) (match plat.name
-                :platOriz (values 0 12 48 16)
-                :platVert (values 2 11 16 16)
+                :platOriz (values 0 13 48 16)
+                :platVert (values 2 12 16 16)
                 )
               quad (lg.newQuad (* 16 x) (* 16 y) w h (state.tilesetSprite:getDimensions))]
           (lg.draw state.tilesetSprite quad plat.x plat.y)
