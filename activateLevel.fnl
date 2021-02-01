@@ -242,9 +242,9 @@
       :frame 1
       :weapon 0
       :invinc 0
-      :a-terra? false
-      :salto-a-muro? false
-      :salto-doppio? true
+      :aTerra? false
+      :saltoAMuro? false
+      :saltoDoppio? true
     })
     (set state.gemma (lume.match state.spriteLayer.items #(= $1.name :gem)))
     (set state.gemma.preso? (-?> state.hiScore (. (. params.listaLivelli state.nLivello)) (. :gemma)))

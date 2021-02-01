@@ -3,14 +3,16 @@
                 (love.graphics.newCanvas w h)))
 
 (local scale 1)
+(global audio {})
 
-;; set the first mode
-(global mode (require "mode-init"))
 
 (fn set-mode [mode-name ...]
   (global mode (require mode-name))
   (when mode.activate
     (mode.activate ...)))
+
+;; set the first mode
+(set-mode "mode-init")
 
 (fn love.load []
   (love.graphics.setDefaultFilter "nearest" "nearest")

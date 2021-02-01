@@ -76,6 +76,7 @@
 )
 
 (fn camera.position [self]
+  (when state.player.suPiattVert? (self:unlock))
   (let [cenX (centerPlayerX self)
         cenY (centerPlayerY self)
         yPlayer state.player.y
@@ -116,7 +117,7 @@
                     (set self.stateY :unlocked)
                     (set self.oy 0)
                   )
-                (and state.player.a-terra? (< self.yrange (math.abs (- yPlayer self.yPlat))))
+                (and state.player.aTerra? (< self.yrange (math.abs (- yPlayer self.yPlat))))
                   (do
                     (set self.yPlat yPlayer)
                     (set self.oy (math.max 0 (- self.y cenY)))
@@ -128,7 +129,7 @@
             )
           )
           :bottomLock (do
-            (when (and state.player.a-terra? (< yPlayer (+ self.y self.halfWHeight)))
+            (when (and state.player.aTerra? (< yPlayer (+ self.y self.halfWHeight)))
               (set self.stateY :platLock)
               (set self.yPlat yPlayer)
               (set self.oy (math.max 0 (- self.y cenY)))
@@ -138,11 +139,11 @@
           :unlocked (do
             (set self.oy (util.avvicinaAZero self.oy (* state.dt self.speedoy)))
             (let [unlY (+ self.oy 
-                          (if (util.between self.halfWHeight (- yPlayer self.y) self.thirdWHeight)
+                          (if (util.between self.halfWHeight (-> yPlayer (- self.y) (+ self.halfPHeight)) self.thirdWHeight)
                             self.y
                           (< (- yPlayer self.y) self.halfWHeight)
                             cenY
-                            (math.max 0 (- yPlayer self.thirdWHeight))))
+                            (math.max 0 (-> yPlayer (- self.thirdWHeight) (+ self.halfPHeight)))))
                   bottomReached? (< self.mapHeight (+ unlY self.wHeight))]
             (if
               bottomReached?
@@ -150,7 +151,7 @@
                   (set self.stateY :bottomLock)
                   cenY
                 )
-              state.player.a-terra?
+              (and state.player.aTerra? (not state.player.suPiattVert?))
                 (do 
                   (set self.stateY :platLock)
                   (set self.yPlat yPlayer)

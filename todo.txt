@@ -13,7 +13,7 @@ salti: 5-2 6-1
 
 TODO PRIORITY
 
-visualizzare acquisizione punti
+raccattare suoni
 
 continuare a produrre livelli e testarli per esplorare meccaniche
 

@@ -16,11 +16,16 @@
   (fn givePoints [entity pts]
     (set state.score (+ state.score pts))
     (anim.drawFloatingText state (.. pts) entity.x entity.y 1.4)
+    (if (= entity.name :gem) 
+      (TEsound.play audio.gem :static)
+      (TEsound.play audio.coin :static)
+    )
   )
 
   (fn giveLife [entity qty]
     (set state.player.hp (+ state.player.hp 1))
     (anim.drawFloatingText state (.. "+" qty " HP") entity.x entity.y 1.6)
+    (TEsound.play audio.heart :static)
   )
 
   (fn diePlayer []
@@ -28,6 +33,7 @@
     ;rimuove giocatore da collisioni
     (state.world:remove state.player)
     (anim.animPlayerDeath state)
+    (TEsound.play audio.explosion :static)
   )
 
   (fn turnAround [entity]
@@ -37,6 +43,7 @@
 
   (fn attack [attacker target]
     (when (<= target.invinc 0)
+      (TEsound.play audio.hit :static)
       (if (= target.name :player)
         (do
           (set target.hp (- target.hp 1))
@@ -50,10 +57,15 @@
           (if (<= target.hp 0)
             (do
               (anim.animDeath state target)
-              (givePoints target 5))
+              (givePoints target 5)
               (lume.remove state.spriteLayer.enemies target)
               (state.world:remove target)
-            (do (set target.invinc params.enemyInvinc) true) ) ) ) ) )
+            )
+            (do 
+              (set target.invinc params.enemyInvinc) 
+              true
+            )
+          ) ) ) ) )
 
   (fn update [dt set-mode]
     (local player state.player)
@@ -61,6 +73,7 @@
     (set state.clock (% (+ dt state.clock) 27720))
     (set state.frame (+ 1 state.frame))
     (tset state.dts (+ 1 (% state.frame 30)) dt)
+    (TEsound.cleanup)
 
     (when (and (lume.find state.tasti-premuti "escape") (not state.concluso?)) (set state.pausa? (not state.pausa?)))
     (when (lume.find state.tasti-premuti "d") (set state.debugMode? (not state.debugMode?)))
@@ -104,9 +117,6 @@
                 (set ent.x newX)
                 (set ent.y newY)
               )
-              (when (and (util.equals plat.verso [:u :d]) (= ent.name :player))
-                (set camera.stateY :unlocked)
-              )
             )
           )
         )
@@ -122,19 +132,20 @@
         (if (lume.find state.tasti-premuti "z")
           (if 
             ; discesa da piattaforma
-            (and player.a-terra? (love.keyboard.isDown "down"))
+            (and player.aTerra? (love.keyboard.isDown "down"))
               (do
                 (set yPlayer (+ yPlayer 0.1))
               )
-            player.a-terra?
+            player.aTerra?
               (do
                 (set player.tSalto 0)
                 (set player.ySpd (- player.ySpd params.v-salto-terra))
+                (TEsound.play audio.jump :static nil nil 0.7)
               )
-            player.salto-a-muro?
+            player.saltoAMuro?
               (do
                 (set player.ySpd (- 0 params.v-salto-muro-v))
-                (set player.xSpd (if (= "left" player.salto-a-muro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
+                (set player.xSpd (if (= "left" player.saltoAMuro?) (- 0 params.v-salto-muro-h) params.v-salto-muro-h))
                 (camera:unlock)
               )
             player.salto-doppio?
@@ -175,8 +186,9 @@
         (set player.y actualY)
 
         ; check saltabilita per prossimo update
-        (set player.a-terra? false)
-        (set player.salto-a-muro? false)
+        (set player.aTerra? false)
+        (set player.saltoAMuro? false)
+        (set player.suPiattVert? false)
         (when (> collisionsNumber 0)
           (var cols (if (= collisionsNumber 1)
             [collisions]
@@ -188,6 +200,7 @@
               (set col.item.ySpd (- 0 params.v-bumper))
               (set player.salto-doppio? true)
               (camera:unlock)
+              (TEsound.play audio.bumper :static)
             )
             (when (= col.other.type :coing)
               (givePoints col.other 5)
@@ -213,7 +226,7 @@
                 (and (not= col.normal.x 0) (= col.normal.y 0))
                 (do
                   (set col.item.xSpd 0)
-                  (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+                  (set player.saltoAMuro? (if (< 0 col.normal.x) "right" "left"))
                 )
                 ; muro orizzontale
                 (and (not= col.normal.y 0) (= col.normal.x 0))
@@ -221,20 +234,26 @@
               )
               ; quando tocchiamo terra
               (when (and (= col.normal.x 0) (< col.normal.y 0))
-                (set player.a-terra? true)
+                (set player.aTerra? true)
                 (set player.salto-doppio? true)
               )
             )
 
+            ; (print player.suPiattVert?)
+
             (when (and (= col.type "selectiveSlide") col.slide)
               (set col.item.ySpd 0)
-              (set player.a-terra? true)
+              (set player.aTerra? true)
               (set player.salto-doppio? true)
+              (when (and col.other.verso (util.equals col.other.verso [:u :d]))
+                (set player.suPiattVert? true)
+              )
             )
 
             ; quando colpiamo l'obiettivo
             (when (and (= col.item.name "player") (= col.other.name "objective"))
               (set state.concluso? true)
+              (TEsound.play audio.objective :static)
               (var nomeLivello (. params.listaLivelli state.nLivello))
               (when (not (. state.hiScore nomeLivello)) (tset state.hiScore nomeLivello {:score 0}))
               (var vecchioPunteggio (or (-?> state.hiScore (. nomeLivello) (. :score)) 0))
@@ -268,7 +287,7 @@
         )
 
         (set player.verso (if (= player.xSpd 0) player.verso (< player.xSpd 0) :l :r))
-        (set player.state (if player.a-terra?
+        (set player.state (if player.aTerra?
           (if (< (math.abs player.xSpd) params.v-idle)
             ; stato idle : fermo e per terra
             "idle"
@@ -291,7 +310,7 @@
           (when (> len 0)
             (each [_ col (ipairs items)]
               (when (and (not= col.normal.x 0) (= col.normal.y 0))
-                (set player.salto-a-muro? (if (< 0 col.normal.x) "right" "left"))
+                (set player.saltoAMuro? (if (< 0 col.normal.x) "right" "left"))
         ))))
 
         ;logica spada

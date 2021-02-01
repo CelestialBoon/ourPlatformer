@@ -10,6 +10,7 @@ params = require("params")
 util = require("util")
 camera = require("camera")
 anim = require("anim")
+require("lib.tesound")
 lg = _G.love.graphics
 
 require("wrap")
