@@ -57,7 +57,7 @@
           (if (<= target.hp 0)
             (do
               (anim.animDeath state target)
-              (givePoints target 5)
+              (givePoints target (* 5 (. params.hp target.name)))
               (lume.remove state.spriteLayer.enemies target)
               (state.world:remove target)
             )
@@ -96,7 +96,7 @@
               moveX (- destX startX)
               moveY (- destY startY)
               ;troviamo le entità sopra la piattaforma
-              (entities numEntities) (state.world:queryRect startX (- startY 10) plat.width 20 #(or (= $1.type :enemy) (= $1.type :player)))
+              (entities numEntities) (state.world:queryRect startX (- startY 1) plat.width 1 #(or (= $1.type :enemy) (= $1.type :player)))
               ]
               (set plat.x destX)
               (set plat.y destY)
@@ -111,11 +111,13 @@
           ;update per traslarle
           (when (< 0 numEntities)
             (each [_ ent (ipairs entities)]
-              (let [newX (+ ent.x moveX) 
-                    newY (+ ent.y moveY)]
-                (state.world:update ent newX newY)
-                (set ent.x newX)
-                (set ent.y newY)
+              (when (= (+ ent.y ent.height) startY)
+                (let [newX (+ ent.x moveX) 
+                      newY (+ ent.y moveY)]
+                  (state.world:update ent newX newY)
+                  (set ent.x newX)
+                  (set ent.y newY)
+                )
               )
             )
           )
@@ -200,7 +202,8 @@
               (set col.item.ySpd (- 0 params.v-bumper))
               (set player.salto-doppio? true)
               (camera:unlock)
-              (TEsound.play audio.bumper :static)
+              (love.audio.play audio.bumperSource)
+              ; (TEsound.play audio.bumper :static)
             )
             (when (= col.other.type :coing)
               (givePoints col.other 5)

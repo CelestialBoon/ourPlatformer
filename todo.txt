@@ -1,16 +1,3 @@
-INFO
-
-cose obbligatorie in un livello
-- Tile layer Entities con giocatore e gemma
-- Custom map property: season
-
-gap massimi: (da rifare per nuova telecamera)
-orizzontale     7
-basso           3 (o 2 quando a un terzo schermo)
-alto            5 (o 7 quando a un terzo schermo)
-
-salti: 5-2 6-1
-
 TODO PRIORITY
 
 raccattare suoni
@@ -144,7 +131,18 @@ piattaforma verticale manda la camera in unlocked
 completare tileset in tutte le direzioni
 
 
+INFO
 
+cose obbligatorie in un livello
+- Tile layer Entities con giocatore e gemma
+- Custom map property: season
+
+gap massimi: (da rifare per nuova telecamera)
+orizzontale     7
+basso           3 (o 2 quando a un terzo schermo)
+alto            5 (o 7 quando a un terzo schermo)
+
+salti: 5-2 6-1
 
 
 CAMERA

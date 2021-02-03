@@ -1,10 +1,10 @@
 VERSION=0.1.0
 LOVE_VERSION=11.3
-NAME=change-me
-ITCH_ACCOUNT=change-me-too
+NAME=OurPlatformer
+ITCH_ACCOUNT=tosxychor
 URL=https://gitlab.com/alexjgriffith/min-love2d-fennel
 AUTHOR="Your Name"
-DESCRIPTION="Minimal setup for trying out Phil Hagelberg's fennel/love game design process."
+DESCRIPTION="Platformer"
 
 LIBS := $(wildcard lib/*)
 LUA := $(wildcard *.lua)

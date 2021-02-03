@@ -32,7 +32,6 @@
   (if (= (type tick) :number)
     (fn []
       (local f (math.floor (/ (- state.clock start) tick)))
-      (print flen tick f)
       (if (< f flen) f nil)
     )
     (fn []
