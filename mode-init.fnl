@@ -5,7 +5,7 @@
       (tset audio fileName (or (. audio fileName) (love.sound.newSoundData (.. "lib/assets/audio/" fileName ".wav"))))
     )
     (tset audio :bumperSource (love.audio.newSource "lib/assets/audio/bumper.wav" :static))
-    (TEsound.playLooping "lib/assets/audio/introSong.wav" :stream :music nil 0.5)
+    ; (TEsound.playLooping "lib/assets/audio/introSong.wav" :stream :music nil 0.5)
   )
 
   :update (fn update [dt set-mode]

@@ -61,6 +61,7 @@
       :enemies []
       :items []
       :platforms []
+      :disappearingPlatforms []
     })
 
     (macro addCollidable [typ prop sprite?]
@@ -209,6 +210,17 @@
             )
           )
         )
+        (let [ls (addCollidable :platDisappearing {
+          :height 16
+          :width 16
+          :x 0
+          :y 0
+          :name :platDisappearing
+        } true)]
+          (when ls (each [_ plat (ipairs ls)]
+            (table.insert state.spriteLayer.platforms plat)
+          ))
+        )
       )
     )
     
@@ -272,7 +284,7 @@
           (if (< 0.15 (% enemy.invinc 0.3))
             (lg.setColor 1 0 0 1)
             (lg.setColor 0.5 0 0 1))
-          (lg.setShader state.shader)
+          (lg.setShader state.shaders.invinc)
         )
         (lg.draw state.spriteLayer.sprites.enemies (lg.newQuad
           (* enemyColumn 16)
@@ -321,9 +333,24 @@
         (let [(x y w h) (match plat.name
                 :platOriz (values 0 13 48 16)
                 :platVert (values 2 12 16 16)
+                :platDisappearing (values 1 12 16 16)
                 )
-              quad (lg.newQuad (* 16 x) (* 16 y) w h (state.tilesetSprite:getDimensions))]
-          (lg.draw state.tilesetSprite quad plat.x plat.y)
+              quad (lg.newQuad (* 16 x) (* 16 y) w h (state.tilesetSprite:getDimensions))
+              disappearingPlat? (and (= plat.type :platDisappearing) plat.timer)
+              shake (if disappearingPlat? (match (% plat.timer 0.14) 
+                  (t ? (< t .07)) -1 
+                  t 1
+                ) 0)
+              ]
+          (lg.draw state.tilesetSprite quad (+ plat.x shake) plat.y)
+          ; (when disappearingPlat?
+          ;   (lg.setShader state.shaders.shake)
+          ;   (state.shaders.shake:send :time plat.timer)
+          ; )
+          ; (lg.draw qualcosa)
+          ; (when disappearingPlat?
+          ;   (lg.setShader)
+          ; )
         )
       )
       
@@ -341,7 +368,7 @@
           (if (< 0.15 (% player.invinc 0.3))
             (lg.setColor 1 0 0 1)
             (lg.setColor 0.5 0 0 1))
-          (lg.setShader state.shader)
+          (lg.setShader state.shaders.invinc)
         )
         (lg.draw self.sprites.player (lg.newQuad
           (* playerColumn 16)

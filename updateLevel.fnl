@@ -1,3 +1,5 @@
+(import-macros {: add} "lib.macros")
+
 (fn updateInit [state params]
   (fn entityFilter [item other]
     (if
@@ -75,48 +77,52 @@
     (tset state.dts (+ 1 (% state.frame 30)) dt)
     (TEsound.cleanup)
 
+    (set state.routines (icollect [_ f (ipairs state.routines)] (f)))
+
     (when (and (lume.find state.tasti-premuti "escape") (not state.concluso?)) (set state.pausa? (not state.pausa?)))
     (when (lume.find state.tasti-premuti "d") (set state.debugMode? (not state.debugMode?)))
     ; (util.sleep 0.1)
     ; (when (lume.find state.tasti-premuti "c")
-    ;   (table.insert state.drawfs (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2))))
+    ;   (table.insert state.drawRoutines (util.drawAnim state state.tilesetSprite params.tiles.explosion (/ (lg.getWidth) 2) (/ (lg.getHeight) 2))))
 
     (when (and (not state.pausa?) (not state.concluso?))
       ;spostamento piattaforme
       (each [_ plat (ipairs state.spriteLayer.platforms)]
-        (let [startX plat.x
-              startY plat.y
-              (goalX goalY) (match plat.verso
-                :u (values startX (- startY (* dt params.speeds.platV)))
-                :d (values startX (+ startY (* dt params.speeds.platV)))
-                :r (values (+ startX (* dt params.speeds.platH)) startY)
-                :l (values (- startX (* dt params.speeds.platH)) startY)
-                _ (error "piattaforma senza verso"))
-              (destX destY collisions collisionsNumber) (state.world:move plat goalX goalY platformFilter)
-              moveX (- destX startX)
-              moveY (- destY startY)
-              ;troviamo le entità sopra la piattaforma
-              (entities numEntities) (state.world:queryRect startX (- startY 1) plat.width 1 #(or (= $1.type :enemy) (= $1.type :player)))
-              ]
-              (set plat.x destX)
-              (set plat.y destY)
-          (when (and (< 0 collisionsNumber) (lume.any collisions #(if $1.bounce true false)))
-            (set plat.verso (match plat.verso
-              :u :d
-              :d :u
-              :r :l
-              :l :r
-            ))
-          )
-          ;update per traslarle
-          (when (< 0 numEntities)
-            (each [_ ent (ipairs entities)]
-              (when (= (+ ent.y ent.height) startY)
-                (let [newX (+ ent.x moveX) 
-                      newY (+ ent.y moveY)]
-                  (state.world:update ent newX newY)
-                  (set ent.x newX)
-                  (set ent.y newY)
+        (when plat.verso
+          (let [startX plat.x
+                startY plat.y
+                (goalX goalY) (match plat.verso
+                  :u (values startX (- startY (* dt params.speeds.platV)))
+                  :d (values startX (+ startY (* dt params.speeds.platV)))
+                  :r (values (+ startX (* dt params.speeds.platH)) startY)
+                  :l (values (- startX (* dt params.speeds.platH)) startY)
+                  _ (error "piattaforma senza verso"))
+                (destX destY collisions collisionsNumber) (state.world:move plat goalX goalY platformFilter)
+                moveX (- destX startX)
+                moveY (- destY startY)
+                ;troviamo le entità sopra la piattaforma
+                (entities numEntities) (state.world:queryRect startX (- startY 3) plat.width 3 #(or (= $1.type :enemy) (= $1.type :player)))
+                ]
+                (set plat.x destX)
+                (set plat.y destY)
+            (when (and (< 0 collisionsNumber) (lume.any collisions #(if $1.bounce true false)))
+              (set plat.verso (match plat.verso
+                :u :d
+                :d :u
+                :r :l
+                :l :r
+              ))
+            )
+            ;update per traslarle
+            (when (< 0 numEntities)
+              (each [_ ent (ipairs entities)]
+                (when (= (+ ent.y ent.height) startY)
+                  (let [newX (+ ent.x moveX) 
+                        newY (+ ent.y moveY)]
+                    (state.world:update ent newX newY)
+                    (set ent.x newX)
+                    (set ent.y newY)
+                  )
                 )
               )
             )
@@ -192,11 +198,6 @@
         (set player.saltoAMuro? false)
         (set player.suPiattVert? false)
         (when (> collisionsNumber 0)
-          (var cols (if (= collisionsNumber 1)
-            [collisions]
-            collisions
-          ))
-
           (each [_ col (ipairs collisions)]
             (when (= col.other.type :bumper)
               (set col.item.ySpd (- 0 params.v-bumper))
@@ -251,6 +252,10 @@
               (when (and col.other.verso (util.equals col.other.verso [:u :d]))
                 (set player.suPiattVert? true)
               )
+              (when (and (= col.other.type :platDisappearing) (not col.other.timer))
+                (set col.other.timer 0)
+                (table.insert state.spriteLayer.disappearingPlatforms col.other)
+              )
             )
 
             ; quando colpiamo l'obiettivo
@@ -280,7 +285,7 @@
               (giveLife col.other 1)
               (set col.other.preso? true)
             )
-
+ 
             ; quando tocchiamo il fondo
             (when (and (= col.item.name "player") (= col.other.name "border-d"))
               ;resetta state.nLivello
@@ -325,6 +330,23 @@
               (when (attack player enemy)
                 (set enemy.verso player.verso))
             )
+          )
+        )
+      )
+
+      ; logica piattaforme temporanee
+      (each [_ plat (ipairs state.spriteLayer.disappearingPlatforms)]
+        (if (< plat.timer params.disappearingTilesDuration)
+          (add plat.timer dt)
+          (do
+            (set plat.timer nil)
+            (lume.remove state.spriteLayer.platforms plat)
+            (lume.remove state.spriteLayer.disappearingPlatforms plat)
+            (state.world:remove plat)
+            (util.atTimeExec state params.disappearingTilesRespawn (fn []
+              (table.insert state.spriteLayer.platforms plat)
+              (state.world:add plat plat.x plat.y plat.width plat.height)
+            ))
           )
         )
       )

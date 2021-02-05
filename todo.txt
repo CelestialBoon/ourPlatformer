@@ -1,9 +1,11 @@
 TODO PRIORITY
 
-raccattare suoni
+piattaforme temporanee
+vedere di integrare meglio sti con tile mobili
 
 continuare a produrre livelli e testarli per esplorare meccaniche
 
+fare/trovare musiche
 
 POSSIBILITÀ DI PARTI LIVELLO
 - muro da scalare con nemici volanti di passaggio

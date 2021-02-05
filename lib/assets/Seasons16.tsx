@@ -532,6 +532,11 @@
    <property name="passable" type="bool" value="true"/>
   </properties>
  </tile>
+ <tile id="205" type="platDisappearing">
+  <properties>
+   <property name="passable" type="bool" value="true"/>
+  </properties>
+ </tile>
  <tile id="206" type="platVert">
   <properties>
    <property name="passable" type="bool" value="true"/>

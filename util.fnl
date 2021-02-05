@@ -40,6 +40,15 @@
   (/ tot (length ns))
 )
 
+(fn atTimeExec [state time f]
+  (var t 0)
+  (table.insert state.routines (fn routine []
+    (if (< t time)
+      (do
+        (set t (+ t state.dt))
+        routine)
+      (do
+        (f)
+        nil ) ) )) )
 
-
-{: sleep : between : avvicinaAZero : equals : merge : average}
+{: sleep : between : avvicinaAZero : equals : merge : average : atTimeExec}

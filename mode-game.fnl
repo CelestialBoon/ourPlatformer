@@ -22,8 +22,11 @@
   :world nil
   :player nil
 
-  :shader (lg.newShader "lib/assets/shader.fs")
-  :drawfs []
+  :routines []
+  :drawRoutines []
+  :shaders {:invinc (lg.newShader "lib/assets/invinc.fs")
+            :shake (lg.newShader "lib/assets/shake.fs")
+            }
 })
 
 (local (wWidth wHeight) (love.graphics.getDimensions))
@@ -68,7 +71,7 @@
     
     (love.graphics.print (.. "Punteggio: " state.score) (- wWidth 100) 10)
     (love.graphics.print (.. "FPS: " (math.floor (/ 1 (util.average state.dts)))) (- wWidth 100) 30)
-    (set state.drawfs (icollect [_ f (ipairs state.drawfs)] (f)))
+    (set state.drawRoutines (icollect [_ f (ipairs state.drawRoutines)] (f)))
   )
 
   :keypressed (fn keypressed [key set-mode]

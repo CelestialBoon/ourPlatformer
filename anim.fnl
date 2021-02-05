@@ -5,7 +5,7 @@
         ]
     (var (x y) (camera:screenPos x y))
     (var time 0)
-    (table.insert state.drawfs (fn draw []
+    (table.insert state.drawRoutines (fn draw []
       (when (< time duration)
         (love.graphics.print text x y 0 scale scale)
         (set y (- y (* state.dt spd)))
@@ -51,7 +51,7 @@
         draw ) ) ) )
 
 (fn animDeath [state entity]
-  (table.insert state.drawfs (drawAnim state state.tilesetSprite params.tiles.explosion (- entity.x 4) (- entity.y 4)))
+  (table.insert state.drawRoutines (drawAnim state state.tilesetSprite params.tiles.explosion (- entity.x 4) (- entity.y 4)))
 )
 
 (fn animPlayerDeath [state]
@@ -59,7 +59,7 @@
           tiledata params.tiles.explosion
           fnframe (animFrame state tiledata.flen tiledata.tick)
           (x y) (camera:screenPos state.player.x state.player.y)]
-      (table.insert state.drawfs (fn draw []
+      (table.insert state.drawRoutines (fn draw []
         (let [fr (fnframe)]
           (if fr (do
               (set state.playerMorto? fr)
