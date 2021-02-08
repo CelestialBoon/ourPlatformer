@@ -228,6 +228,7 @@
     (state.map:removeLayer "Entities")
 
     (local player state.player)
+    (when state.respawn (state.world:update player state.respawn.x state.respawn.y))
 
     (var map-width (* state.map.width state.map.tilewidth))
     (var map-height (* state.map.height state.map.tileheight))

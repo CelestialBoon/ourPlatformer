@@ -335,9 +335,9 @@
    <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
- <tile id="124">
+ <tile id="124" type="checkpoint">
   <properties>
-   <property name="collidable" type="bool" value="false"/>
+   <property name="collidable" type="bool" value="true"/>
   </properties>
  </tile>
  <tile id="125" type="terrain" terrain="2,2,,2">

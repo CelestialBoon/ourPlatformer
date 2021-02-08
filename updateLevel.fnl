@@ -3,7 +3,7 @@
 (fn updateInit [state params]
   (fn entityFilter [item other]
     (if
-      (or (util.equals other.name [:objective :bumper :coing :coinp :gem :heart]) (and (= item.name :player) (= other.name :block)))
+      (or (util.equals other.type [:objective :bumper :coing :coinp :gem :heart :checkpoint]) (and (= item.type :player) (= other.type :block)))
       "cross"
       (or (-?> other (. :layer) (. :properties) (. :passable)) (-?> other (. :properties) (. :passable)))
       "selectiveSlide"
@@ -230,6 +230,11 @@
               ;resetta state.nLivello
               (attack col.other player)
             )
+            (when (and (= col.other.type :checkpoint) (or (not state.respawn) (not= col.other.x state.respawn.x) (not= col.other.y state.respawn.y)))
+              (set state.respawn {:x col.other.x 
+                                  :y col.other.y})
+              ;suonino checkpoint
+            )
             ; (print col.other.type)
             ; (print dt)
             ; (pp col.other.type)
@@ -388,6 +393,7 @@
 
     (when (and state.concluso? (lume.find state.tasti-premuti "return"))
       ; prossimo livello
+      (set state.respawn nil)
       (set state.nLivello (+ state.nLivello 1))
       (if (= nil (. params.listaLivelli state.nLivello))
         (set-mode "mode-end")

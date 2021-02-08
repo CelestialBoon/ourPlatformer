@@ -12,6 +12,7 @@
   :concluso? false
   :playerMorto? false
   :debugMode? false
+  :respawn nil
   
   :gemma nil
   :hiScore {}
