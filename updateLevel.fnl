@@ -97,11 +97,12 @@
                   :r (values (+ startX (* dt params.speeds.platH)) startY)
                   :l (values (- startX (* dt params.speeds.platH)) startY)
                   _ (error "piattaforma senza verso"))
+                (player? numPlayer) (state.world:queryRect plat.x plat.y plat.width plat.height #(= $1.name :player))
                 (destX destY collisions collisionsNumber) (state.world:move plat goalX goalY platformFilter)
                 moveX (- destX startX)
                 moveY (- destY startY)
                 ;troviamo le entità sopra la piattaforma
-                (entities numEntities) (state.world:queryRect startX (- startY 3) plat.width 3 #(or (= $1.type :enemy) (= $1.type :player)))
+                (entities numEntities) (state.world:queryRect startX (- startY 1) plat.width 1 #(or (= $1.type :enemy) (= $1.type :player)))
                 ]
                 (set plat.x destX)
                 (set plat.y destY)
@@ -112,6 +113,13 @@
                 :r :l
                 :l :r
               ))
+            )
+            (when (and (= plat.verso :u) (< 0 collisionsNumber))
+              (each [_ c (ipairs collisions)]
+                (when (and (= c.other.name :player) (= 0 numPlayer))
+                  (state.world:update c.other c.other.x (- plat.y c.other.height))
+                )
+              )
             )
             ;update per traslarle
             (when (< 0 numEntities)
@@ -193,6 +201,7 @@
         (set player.x actualX)
         (set player.y actualY)
 
+        (var ySpeedLock? false)
         ; check saltabilita per prossimo update
         (set player.aTerra? false)
         (set player.saltoAMuro? false)
@@ -201,6 +210,7 @@
           (each [_ col (ipairs collisions)]
             (when (= col.other.type :bumper)
               (set col.item.ySpd (- 0 params.v-bumper))
+              (set ySpeedLock? true)
               (set player.salto-doppio? true)
               (camera:unlock)
               (love.audio.play audio.bumperSource)
@@ -233,7 +243,7 @@
                   (set player.saltoAMuro? (if (< 0 col.normal.x) "right" "left"))
                 )
                 ; muro orizzontale
-                (and (not= col.normal.y 0) (= col.normal.x 0))
+                (and (not= col.normal.y 0) (= col.normal.x 0) (not ySpeedLock?))
                 (set col.item.ySpd 0)
               )
               ; quando tocchiamo terra
@@ -246,7 +256,7 @@
             ; (print player.suPiattVert?)
 
             (when (and (= col.type "selectiveSlide") col.slide)
-              (set col.item.ySpd 0)
+              (when (not ySpeedLock?) (set col.item.ySpd 0))
               (set player.aTerra? true)
               (set player.salto-doppio? true)
               (when (and col.other.verso (util.equals col.other.verso [:u :d]))
@@ -360,7 +370,7 @@
         (set enemy.y actualY)
 
         (local instabile? (and enemy.properties.ground? (do
-          (local (items len) (state.world:queryRect (+ enemy.x (/ enemy.width 2)) (+ enemy.y enemy.height 1) 1 1 
+          (local (items len) (state.world:queryRect (+ enemy.x (/ enemy.width 2) (match enemy.verso :l -2 :r 2)) (+ enemy.y enemy.height 1) 1 1 
             #(or (-?> $1 (. :properties) (. :collidable)) (-?> $1 (. :properties) (. :passable)))))
           (= len 0)
         )))
